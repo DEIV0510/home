@@ -1,0 +1,44 @@
+---
+// Texto base, sin condiciones inventadas (plazos, garantías generales, cobertura): lo que no
+// entregó el cliente se confirma por WhatsApp. Falta revisión legal: docs/PENDIENTES.md.
+import Legal from '../layouts/Legal.astro';
+import { LINEAS } from '../lib/empresa';
+---
+
+<Legal titulo="Términos y condiciones" descripcion="Condiciones de uso del sitio de HOME PREMIUM y de las solicitudes de compra por WhatsApp." actualizado="9 de noviembre de 2026">
+  <h2>El sitio</h2>
+  <p>
+    Este sitio muestra los muebles que fabrica y vende HOME PREMIUM, con sus precios en pesos colombianos. No es una tienda con pago en línea: las compras se
+    acuerdan por WhatsApp con un asesor.
+  </p>
+
+  <h2>Precios y disponibilidad</h2>
+  <ul>
+    <li>Los precios publicados están en pesos colombianos (COP) y pueden cambiar sin previo aviso.</li>
+    <li>Toda compra queda sujeta a disponibilidad y a la confirmación del asesor por WhatsApp, donde se acuerdan medidas, colores, forma de pago y entrega.</li>
+    <li>El precio de las bases cama depende del ancho elegido (100, 120 o 140 cm).</li>
+    <li>Las promociones (por ejemplo, la del colchón de 1.40 × 1.90 m) aplican en las condiciones que confirme el asesor.</li>
+  </ul>
+
+  <h2>Fotografías</h2>
+  <p>
+    Las fotos corresponden a muebles fabricados por HOME PREMIUM. Los colores pueden verse distintos según la pantalla y la luz; si necesitas más fotos o
+    detalles, pídelos por WhatsApp.
+  </p>
+
+  <h2>Uso del sitio</h2>
+  <p>
+    Los textos, fotos y marcas de este sitio pertenecen a HOME PREMIUM. No está permitido copiarlos para fines comerciales sin autorización.
+  </p>
+
+  <h2>Contacto</h2>
+  <ul>
+    {
+      LINEAS.map((l) => (
+        <li>
+          {l.nombre}: <a href={`tel:+${l.internacional}`}>{l.visible}</a>
+        </li>
+      ))
+    }
+  </ul>
+</Legal>

@@ -1,0 +1,484 @@
+---
+// Catálogo completo. Los filtros, el buscador y el orden los maneja app.ts sobre el HTML ya
+// armado (sin JS se ve todo y todos los botones funcionan).
+// Orden por defecto («Destacados»): primero los productos con foto, cada grupo por precio.
+import Tarjeta from './Tarjeta.astro';
+import Colchon from './Colchon.astro';
+import Icono from './Icono.astro';
+import { PRODUCTOS, CATEGORIAS, type CategoriaId, type Producto } from '../data/catalogo';
+import { fotosDe } from '../lib/fotos';
+import { LINEA_PRINCIPAL } from '../lib/empresa';
+import { wa, MENSAJES } from '../lib/mensajes';
+
+const tieneFoto = (p: Producto) => fotosDe(p.id).length > 0;
+const destacados = (lista: Producto[]) =>
+  lista
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => Number(tieneFoto(b.p)) - Number(tieneFoto(a.p)) || a.p.precio - b.p.precio || a.i - b.i)
+    .map(({ p }) => p);
+const de = (id: CategoriaId) => destacados(PRODUCTOS.filter((p) => p.categoria === id));
+const nombreCat = (id: CategoriaId) => CATEGORIAS.find((c) => c.id === id)!.nombre;
+
+const salas = de('salas');
+const total = PRODUCTOS.length + 1; // + el colchón
+const FILTROS = [
+  { id: 'todo', texto: 'Todo', n: total },
+  { id: 'salas', texto: 'Todas las salas', n: salas.length },
+  { id: 'compacta', texto: 'Salas compactas', n: salas.filter((p) => p.etiquetas?.includes('compacta')).length },
+  { id: 'en-l', texto: 'Salas en L', n: salas.filter((p) => p.etiquetas?.includes('en-l')).length },
+  { id: 'sofas-cama', texto: 'Sofás cama', n: de('sofas-cama').length },
+  { id: 'colchones', texto: 'Colchones', n: 1 },
+  { id: 'bases-cama', texto: 'Bases cama', n: de('bases-cama').length },
+];
+const GRUPOS: { id: CategoriaId; nota?: string }[] = [
+  { id: 'salas' },
+  { id: 'sofas-cama' },
+  { id: 'colchones' },
+  { id: 'bases-cama', nota: 'Precio según el ancho: 100, 120 o 140 cm.' },
+];
+const OTROS: CategoriaId[] = ['comedores', 'tocadores'];
+const modelos = (n: number) => `${n} ${n === 1 ? 'modelo' : 'modelos'}`;
+let orden = 0;
+---
+
+<section id="catalogo" class="catalogo" aria-labelledby="catalogo-titulo" data-catalogo>
+  <div class="catalogo__cab seccion">
+    <div class="contenedor catalogo__cab-fila">
+      <div class="revela">
+        <h2 id="catalogo-titulo" class="titular h2">Catálogo</h2>
+        <p class="catalogo__intro">Precios en pesos colombianos. Elige tu modelo y escríbenos.</p>
+      </div>
+      <div class="catalogo__herramientas revela" style="--retraso:120ms">
+        <label class="buscar">
+          <Icono nombre="buscar" />
+          <span class="sr">Buscar por nombre</span>
+          <input type="search" placeholder="Buscar modelo" autocomplete="off" enterkeyhint="search" data-buscar-input />
+          <button type="button" class="buscar__limpiar" data-buscar-limpiar hidden aria-label="Borrar búsqueda">
+            <Icono nombre="cerrar" />
+          </button>
+        </label>
+        <label class="ordenar">
+          <span class="sr">Ordenar</span>
+          <select data-ordenar>
+            <option value="destacados">Destacados</option>
+            <option value="precio-asc">Menor precio</option>
+            <option value="precio-desc">Mayor precio</option>
+          </select>
+          <Icono nombre="abajo" />
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="barra" data-barra>
+    <div class="contenedor barra__fila">
+      <div class="barra__chips" role="group" aria-label="Filtrar catálogo" data-chips>
+        {
+          FILTROS.map((f) => (
+            <button type="button" class="chip" aria-pressed={f.id === 'todo' ? 'true' : 'false'} data-filtro={f.id}>
+              {f.texto}
+              <span class="chip__n cifra">{f.n}</span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="catalogo__cuerpo">
+    <div class="contenedor">
+      <p class="catalogo__resultado" aria-live="polite" data-resultado>{total} productos</p>
+
+      {
+        GRUPOS.map((g) => {
+          const lista = g.id === 'colchones' ? [] : de(g.id);
+          return (
+            <section id={g.id} class="grupo" data-grupo={g.id} aria-labelledby={`grupo-${g.id}`}>
+              <div class="grupo__cab">
+                <h3 id={`grupo-${g.id}`} class="titular grupo__titulo">
+                  {nombreCat(g.id)}
+                </h3>
+                <span class="grupo__n cifra" data-grupo-n>
+                  {g.id === 'colchones' ? '1.40 × 1.90 m' : modelos(lista.length)}
+                </span>
+              </div>
+              {g.nota && <p class="grupo__nota">{g.nota}</p>}
+              {g.id === 'colchones' ? (
+                <Colchon />
+              ) : (
+                <div class="rejilla" data-rejilla>
+                  {lista.map((p) => (
+                    <Tarjeta p={p} orden={orden++} />
+                  ))}
+                </div>
+              )}
+            </section>
+          );
+        })
+      }
+
+      <section id="otros-muebles" class="grupo" data-grupo="otros" aria-labelledby="grupo-otros">
+        <div class="grupo__cab">
+          <h3 id="grupo-otros" class="titular grupo__titulo">Otros muebles</h3>
+        </div>
+        <div class="otros">
+          {
+            OTROS.map((id) => {
+              const lista = de(id);
+              const mensaje = MENSAJES[id as 'comedores' | 'tocadores'];
+              return lista.length ? (
+                <div id={id} class="otros__grupo" data-grupo={id}>
+                  <h4 class="titular otro__nombre">{nombreCat(id)}</h4>
+                  <div class="rejilla" data-rejilla>
+                    {lista.map((p) => (
+                      <Tarjeta p={p} orden={orden++} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <article id={id} class="otro revela" data-producto data-id={id} data-cat={id} data-buscar={`${id} ${id.slice(0, -2)}`} data-precio="0" data-orden={orden++}>
+                  <h4 class="titular otro__nombre">{nombreCat(id)}</h4>
+                  <p class="otro__texto">Pregunta por los modelos y precios disponibles.</p>
+                  <a class="btn btn--tinta" href={wa(LINEA_PRINCIPAL.internacional, mensaje)} target="_blank" rel="noopener" data-lineas data-mensaje={mensaje}>
+                    <Icono nombre="whatsapp" />
+                    <span>Ver modelos por WhatsApp</span>
+                  </a>
+                </article>
+              );
+            })
+          }
+        </div>
+      </section>
+
+      <div class="vacio" data-vacio hidden>
+        <p class="titular vacio__titulo">No encontramos «<span data-vacio-q></span>»</p>
+        <p class="vacio__texto">Puede que lo tengamos con otro nombre. Pregúntanos:</p>
+        <a class="btn btn--oro" href={wa(LINEA_PRINCIPAL.internacional, MENSAJES.general)} target="_blank" rel="noopener" data-vacio-wa data-lineas data-mensaje={MENSAJES.general}>
+          <Icono nombre="whatsapp" />
+          <span>Preguntar por WhatsApp</span>
+        </a>
+        <button type="button" class="enlace-linea vacio__limpiar" data-ver-todo>Ver todo el catálogo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .catalogo {
+    background: var(--marfil);
+  }
+  .catalogo__cab {
+    padding-bottom: 28px;
+  }
+  .catalogo__cab-fila {
+    display: grid;
+    gap: 24px;
+  }
+  .catalogo__intro {
+    margin-top: 14px;
+    color: var(--gris-tinta);
+    max-width: 44ch;
+  }
+  .catalogo__herramientas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .buscar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    border: 1px solid var(--linea);
+    background: var(--blanco);
+    transition: border-color 0.3s;
+  }
+  .buscar:focus-within {
+    border-color: var(--carbon);
+  }
+  .buscar > :global(svg) {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin-left: 14px;
+    color: var(--gris-tinta);
+  }
+  .buscar input {
+    flex: 1;
+    min-width: 0;
+    height: 50px;
+    padding: 0 8px 0 10px;
+    border: 0;
+    background: transparent;
+    font-size: 1rem;
+    outline: none;
+  }
+  .buscar input::-webkit-search-cancel-button {
+    display: none;
+  }
+  .buscar input::placeholder {
+    color: var(--gris-tinta);
+  }
+  .buscar:has(input:focus-visible) {
+    outline: 2px solid var(--oro);
+    outline-offset: 2px;
+  }
+  .buscar__limpiar {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+  }
+  .buscar__limpiar :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+  .ordenar {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .ordenar select {
+    appearance: none;
+    height: 52px;
+    padding: 0 40px 0 14px;
+    border: 1px solid var(--linea);
+    border-radius: 0;
+    background: var(--blanco);
+    font-size: 0.9375rem;
+    cursor: pointer;
+  }
+  .ordenar :global(svg) {
+    position: absolute;
+    right: 12px;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+  }
+
+  /* Barra de filtros: fija bajo la cabecera mientras se recorre el catálogo. */
+  .barra {
+    position: sticky;
+    top: var(--cab-h);
+    z-index: 20;
+    padding-inline: var(--gutter);
+    background: rgb(245 241 233 / 0.97);
+    border-block: 1px solid var(--linea);
+  }
+  .barra__fila {
+    position: relative;
+  }
+  .barra__chips {
+    display: flex;
+    gap: 6px;
+    padding-block: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+    scroll-padding-inline: var(--gutter);
+    /* Desvanece el borde derecho: hay más filtros si se desliza. */
+    mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
+  }
+  .barra__chips::-webkit-scrollbar {
+    display: none;
+  }
+  .barra__chips.is-final {
+    mask-image: none;
+  }
+  .chip {
+    position: relative;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--linea);
+    background: var(--blanco);
+    font: 500 0.875rem/1 var(--font-texto);
+    white-space: nowrap;
+    transition:
+      background-color 0.3s var(--ease),
+      color 0.3s var(--ease),
+      border-color 0.3s var(--ease);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chip__n {
+    color: var(--gris-tinta);
+    font-size: 0.75rem;
+    transition: color 0.3s;
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--carbon);
+    border-color: var(--carbon);
+    color: var(--marfil);
+  }
+  .chip[aria-pressed='true'] .chip__n {
+    color: var(--oro);
+  }
+  @media (hover: hover) {
+    .chip:hover:not([aria-pressed='true']) {
+      border-color: var(--carbon);
+    }
+  }
+  @media (min-width: 768px) {
+    /* En tablet y escritorio los filtros se ven todos (sin deslizar). */
+    .barra__chips {
+      flex-wrap: wrap;
+      overflow: visible;
+      margin-inline: 0;
+      padding-inline: 0;
+      mask-image: none;
+    }
+  }
+
+  .catalogo__cuerpo {
+    padding: 22px var(--gutter) clamp(72px, 10vw, 128px);
+  }
+  .catalogo__resultado {
+    font-size: 0.875rem;
+    color: var(--gris-tinta);
+  }
+  .grupo {
+    margin-top: 28px;
+    scroll-margin-top: calc(var(--cab-h) + var(--barra-h) + 12px);
+  }
+  .grupo + .grupo {
+    margin-top: clamp(56px, 8vw, 96px);
+  }
+  .grupo__cab {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--linea);
+  }
+  .grupo__titulo {
+    font-size: clamp(1.875rem, 5vw, 3rem);
+  }
+  .grupo__n {
+    color: var(--gris-tinta);
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  .grupo__nota {
+    margin: -6px 0 18px;
+    font-size: 0.9375rem;
+    color: var(--gris-tinta);
+  }
+  .rejilla {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  /* Aparición escalonada por columna (sin medir nada con JS). */
+  .rejilla > :global(:nth-child(2n)) {
+    --retraso: 80ms;
+  }
+  @media (min-width: 640px) {
+    .rejilla {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .rejilla > :global(:nth-child(n)) {
+      --retraso: 0ms;
+    }
+    .rejilla > :global(:nth-child(3n + 2)) {
+      --retraso: 80ms;
+    }
+    .rejilla > :global(:nth-child(3n)) {
+      --retraso: 160ms;
+    }
+  }
+  @media (min-width: 1024px) {
+    .rejilla > :global(:nth-child(n)) {
+      --retraso: 0ms;
+    }
+    .rejilla > :global(:nth-child(4n + 2)) {
+      --retraso: 70ms;
+    }
+    .rejilla > :global(:nth-child(4n + 3)) {
+      --retraso: 140ms;
+    }
+    .rejilla > :global(:nth-child(4n)) {
+      --retraso: 210ms;
+    }
+  }
+  @media (min-width: 1024px) {
+    .catalogo__cab-fila {
+      grid-template-columns: 1fr minmax(380px, 460px);
+      align-items: end;
+    }
+    .rejilla {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 20px;
+    }
+  }
+
+  .otros {
+    display: grid;
+    gap: 12px;
+  }
+  .otro {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    padding: 28px 24px;
+    background: var(--blanco);
+    border: 1px solid var(--linea);
+    scroll-margin-top: calc(var(--cab-h) + var(--barra-h) + 12px);
+  }
+  .otro__nombre {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+  .otro__texto {
+    color: var(--gris-tinta);
+  }
+  .otro .btn {
+    margin-top: 6px;
+  }
+  @media (min-width: 768px) {
+    .otros {
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .otro {
+      padding: 40px 36px;
+    }
+  }
+
+  .vacio {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    margin-top: 40px;
+    padding: 48px 20px;
+    text-align: center;
+    border: 1px solid var(--linea);
+    background: var(--blanco);
+  }
+  .vacio__titulo {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    overflow-wrap: anywhere;
+  }
+  .vacio__texto {
+    color: var(--gris-tinta);
+  }
+  .vacio__limpiar {
+    color: var(--gris-tinta);
+    font-size: 0.9375rem;
+  }
+
+  /* Transición de filtros (View Transitions; app.ts nombra las tarjetas visibles). */
+  :global(::view-transition-group(*)) {
+    animation-duration: 0.45s;
+    animation-timing-function: cubic-bezier(0.22, 0.8, 0.24, 1);
+  }
+  :global(::view-transition-old(root)),
+  :global(::view-transition-new(root)) {
+    animation-duration: 0.3s;
+  }
+</style>

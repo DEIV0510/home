@@ -1,0 +1,85 @@
+---
+// Instagram oficial: enlace, sin simular un feed (no hay integración real con la API).
+import Icono from './Icono.astro';
+import { INSTAGRAM } from '../lib/empresa';
+---
+
+<section id="instagram" class="seccion insta oscuro" aria-labelledby="insta-titulo">
+  <div class="contenedor insta__fila">
+    <h2 id="insta-titulo" class="titular insta__titulo revela">
+      <span>Inspírate y descubre</span>
+      <span><em>más diseños</em></span>
+    </h2>
+    <div class="insta__accion revela" style="--retraso:140ms">
+      <a class="insta__usuario" href={INSTAGRAM.url} target="_blank" rel="noopener">
+        <Icono nombre="instagram" />@{INSTAGRAM.usuario}
+      </a>
+      <a class="btn btn--linea" href={INSTAGRAM.url} target="_blank" rel="noopener">
+        <span>Visitar Instagram</span>
+        <Icono nombre="flecha" class="flecha" />
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .insta {
+    position: relative;
+    overflow: clip;
+  }
+  .insta__fila {
+    display: grid;
+    gap: 32px;
+  }
+  .insta__titulo {
+    font-size: clamp(2.75rem, 9.5vw, 7.5rem);
+    line-height: 0.95;
+  }
+  .insta__titulo span {
+    display: block;
+  }
+  .insta__titulo em {
+    color: var(--oro);
+  }
+  .insta__accion {
+    display: grid;
+    justify-items: start;
+    gap: 20px;
+  }
+  .insta__usuario {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.125rem;
+    color: rgb(245 241 233 / 0.85);
+  }
+  .insta__usuario :global(svg) {
+    width: 22px;
+    height: 22px;
+    color: var(--oro);
+  }
+  @media (min-width: 1024px) {
+    .insta__fila {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }
+  }
+  /* El titular se desliza un poco al pasar (parallax horizontal moderado). */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .insta__titulo span:first-child {
+        animation: insta-desliza linear both;
+        animation-timeline: view();
+        animation-range: entry 0% exit 100%;
+      }
+    }
+  }
+  @keyframes insta-desliza {
+    from {
+      transform: translate3d(-4%, 0, 0);
+    }
+    to {
+      transform: translate3d(3%, 0, 0);
+    }
+  }
+</style>

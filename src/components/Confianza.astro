@@ -1,0 +1,137 @@
+---
+// Por qué HOME PREMIUM — los cuatro puntos del brief, sin cifras, años, materiales ni
+// certificaciones inventadas. La frase de cierre es del propio catálogo del cliente.
+import Icono from './Icono.astro';
+import { PRODUCTOS } from '../data/catalogo';
+
+const conPrecio = PRODUCTOS.length + 1;
+const PUNTOS = [
+  { icono: 'fabrica', titulo: 'Somos fabricantes', texto: 'Fabricamos los muebles que vendemos.' },
+  { icono: 'disenos', titulo: 'Variedad de diseños', texto: `${conPrecio} modelos con precio publicado.` },
+  { icono: 'comodidad', titulo: 'Comodidad para tu hogar', texto: 'Salas, sofás cama, colchones y bases para descansar en casa.' },
+  { icono: 'atencion', titulo: 'Atención personalizada', texto: 'Dos líneas de WhatsApp para asesorarte.' },
+] as const;
+---
+
+<section id="por-que" class="seccion confianza" aria-labelledby="confianza-titulo">
+  <div class="contenedor">
+    <div class="confianza__cab revela">
+      <h2 id="confianza-titulo" class="titular h2">Por qué <em>HOME PREMIUM</em></h2>
+      <p class="confianza__cita">«Diseñamos más que muebles: creamos escenarios para tus mejores recuerdos.»</p>
+    </div>
+    <ul class="confianza__lista">
+      {
+        PUNTOS.map((p, i) => (
+          <li class="punto revela" style={`--retraso:${i * 90}ms`}>
+            <span class="punto__icono">
+              <Icono nombre={p.icono} />
+            </span>
+            <h3 class="punto__titulo">{p.titulo}</h3>
+            <p class="punto__texto">{p.texto}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .confianza {
+    background: var(--blanco);
+  }
+  .confianza__cab {
+    display: grid;
+    gap: 18px;
+    margin-bottom: clamp(36px, 5vw, 64px);
+  }
+  .confianza__cab em {
+    color: var(--oro-tinta);
+  }
+  .confianza__cita {
+    max-width: 38ch;
+    font: italic 500 clamp(1.25rem, 2.6vw, 1.625rem) / 1.3 var(--font-titular);
+    color: var(--gris-tinta);
+  }
+  .confianza__lista {
+    display: grid;
+    border-top: 1px solid var(--linea);
+  }
+  .punto {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    column-gap: 18px;
+    row-gap: 4px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--linea);
+  }
+  .punto__icono {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgb(122 97 54 / 0.45);
+    color: var(--oro-tinta);
+    transition:
+      background-color 0.4s var(--ease),
+      color 0.4s var(--ease);
+  }
+  .punto__icono :global(svg) {
+    width: 24px;
+    height: 24px;
+  }
+  .punto__titulo {
+    align-self: end;
+    font: 600 1.375rem/1.1 var(--font-titular);
+    text-transform: uppercase;
+  }
+  .punto__texto {
+    color: var(--gris-tinta);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  @media (hover: hover) {
+    .punto:hover .punto__icono {
+      background: var(--carbon);
+      color: var(--oro);
+    }
+  }
+  @media (min-width: 768px) {
+    .confianza__cab {
+      grid-template-columns: 1fr 1fr;
+      align-items: end;
+      gap: 40px;
+    }
+    .confianza__cita {
+      justify-self: end;
+    }
+    .confianza__lista {
+      grid-template-columns: repeat(2, 1fr);
+      border-top: 0;
+      gap: 0 40px;
+    }
+    .punto {
+      border-top: 1px solid var(--linea);
+      border-bottom: 0;
+      padding: 28px 0 32px;
+    }
+  }
+  @media (min-width: 1100px) {
+    .confianza__lista {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0 32px;
+    }
+    .punto {
+      grid-template-columns: 1fr;
+      row-gap: 10px;
+    }
+    .punto__icono {
+      grid-row: auto;
+      margin-bottom: 14px;
+    }
+    .punto__titulo {
+      align-self: start;
+      min-height: 2.2em;
+    }
+  }
+</style>

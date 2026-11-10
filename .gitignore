@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.astro/
+.cache/
+.vercel/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+
+# Material original del cliente: los catálogos en PowerPoint (48 MB) y el logo original se
+# conservan solo en local; las fotos ya extraídas viven en assets/ (ver assets/ORIGEN.md).
+# Se suben solo las piezas extraídas que no son fotos de producto (portadas y promoción).
+_material-cliente/*
+!_material-cliente/extraido/

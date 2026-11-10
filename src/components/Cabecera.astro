@@ -1,0 +1,420 @@
+---
+// Barra de navegación: transparente sobre la portada, sólida al bajar (app.ts → .is-solida).
+// En celular: emblema, WhatsApp y «Menú» (cajón lateral en un <dialog>: foco atrapado, Esc y
+// botón atrás del teléfono lo cierran).
+import Emblema from './Emblema.astro';
+import Icono from './Icono.astro';
+import { LINEAS, LINEA_PRINCIPAL, INSTAGRAM } from '../lib/empresa';
+import { wa, MENSAJES } from '../lib/mensajes';
+import { NAV } from '../lib/nav';
+
+interface Props {
+  /** Prefijo de los enlaces a secciones: '' en la portada, '/' en otras páginas. */
+  base?: string;
+}
+const { base = '' } = Astro.props;
+const general = wa(LINEA_PRINCIPAL.internacional, MENSAJES.general);
+---
+
+<div class="progreso" aria-hidden="true"><span></span></div>
+<header class="cab" data-cab>
+  <div class="cab__fila">
+    <a class="cab__logo" href={`${base || '/'}#inicio`} aria-label="HOME PREMIUM — inicio">
+      <Emblema tam={52} alt="" />
+    </a>
+    <nav class="cab__nav" aria-label="Principal">
+      <ul>
+        {
+          NAV.map((n) => (
+            <li>
+              <a href={`${base}${n.href}`} data-nav={n.href.slice(1)}>
+                {n.texto}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="cab__acciones">
+      <a class="btn btn--oro cab__cta" href={general} target="_blank" rel="noopener" data-lineas data-mensaje={MENSAJES.general}>
+        <Icono nombre="whatsapp" />
+        <span>Consultar por WhatsApp</span>
+      </a>
+      <a class="btn-icono cab__wa" href={general} target="_blank" rel="noopener" data-lineas data-mensaje={MENSAJES.general} aria-label="Consultar por WhatsApp">
+        <Icono nombre="whatsapp" />
+      </a>
+      <button class="cab__menu" type="button" aria-haspopup="dialog" aria-controls="menu" data-abrir-menu>
+        <span>Menú</span>
+        <Icono nombre="menu" />
+      </button>
+    </div>
+  </div>
+</header>
+
+<dialog id="menu" class="cajon" aria-label="Menú">
+  <div class="cajon__cab">
+    <Emblema tam={44} alt="HOME PREMIUM" />
+    <button class="cajon__cerrar" type="button" data-cerrar aria-label="Cerrar menú">
+      <Icono nombre="cerrar" />
+    </button>
+  </div>
+  <nav aria-label="Menú móvil">
+    <ul class="cajon__nav">
+      {
+        NAV.map((n, i) => (
+          <li style={`--i:${i}`}>
+            <a href={`${base}${n.href}`} data-nav-movil>
+              {n.texto}
+              <Icono nombre="flecha" />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <div class="cajon__pie">
+    <p class="rotulo">Atención por WhatsApp</p>
+    <ul class="cajon__lineas">
+      {
+        LINEAS.map((l) => (
+          <li>
+            <a href={wa(l.internacional, MENSAJES.general)} target="_blank" rel="noopener">
+              <Icono nombre="whatsapp" />
+              <span>{l.nombre}</span>
+              <span class="cifra">{l.visible}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <a class="cajon__ig enlace-linea" href={INSTAGRAM.url} target="_blank" rel="noopener">
+      <Icono nombre="instagram" />@{INSTAGRAM.usuario}
+    </a>
+  </div>
+</dialog>
+
+<style>
+  /* Barra de progreso de lectura (CSS con scroll-timeline; app.ts la mueve donde no hay soporte). */
+  .progreso {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 61;
+    height: 2px;
+    pointer-events: none;
+  }
+  .progreso span {
+    display: block;
+    height: 100%;
+    background: var(--oro);
+    transform-origin: 0 50%;
+    transform: scaleX(var(--progreso, 0));
+  }
+  @supports (animation-timeline: scroll()) {
+    .progreso span {
+      animation: progreso linear both;
+      animation-timeline: scroll(root block);
+    }
+    @keyframes progreso {
+      from {
+        transform: scaleX(0);
+      }
+      to {
+        transform: scaleX(1);
+      }
+    }
+  }
+
+  .cab {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 60;
+    height: var(--cab-h);
+    padding-inline: var(--gutter);
+    color: var(--marfil);
+    transition:
+      background-color 0.45s var(--ease),
+      box-shadow 0.45s var(--ease);
+    animation: cab-entra 0.9s var(--ease) 0.25s both;
+  }
+  :global(html.intro-activa) .cab {
+    animation-play-state: paused;
+  }
+  @keyframes cab-entra {
+    from {
+      transform: translate3d(0, -100%, 0);
+    }
+  }
+  /* Sobre la portada: un velo superior muy suave para que el menú se lea sobre cualquier foto. */
+  .cab::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -24px;
+    z-index: -1;
+    background: linear-gradient(rgb(16 26 39 / 0.55), transparent);
+    transition: opacity 0.45s var(--ease);
+    pointer-events: none;
+  }
+  :global(.cab.is-solida) {
+    background: var(--carbon);
+    box-shadow: 0 1px 0 var(--linea-o);
+  }
+  :global(.cab.is-solida)::before {
+    opacity: 0;
+  }
+  .cab__fila {
+    max-width: var(--max);
+    height: 100%;
+    margin-inline: auto;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .cab__logo {
+    flex: none;
+    display: block;
+    width: 48px;
+    height: 48px;
+    transition: transform 0.45s var(--ease);
+  }
+  .cab__logo :global(img) {
+    width: 100%;
+    height: 100%;
+  }
+  :global(.cab.is-solida) .cab__logo {
+    transform: scale(0.88);
+  }
+  .cab__nav {
+    display: none;
+  }
+  .cab__acciones {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cab__cta {
+    display: none;
+  }
+  .cab__wa {
+    color: var(--oro);
+    border-color: rgb(182 154 104 / 0.6);
+  }
+  .cab__menu {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding-inline: 14px;
+    border: 1px solid var(--linea-o);
+    font: 500 0.75rem/1 var(--font-texto);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cab__menu :global(svg) {
+    width: 20px;
+    height: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .cab__cta {
+      display: inline-flex;
+      min-height: 44px;
+      padding-inline: 18px;
+    }
+    .cab__wa {
+      display: none;
+    }
+  }
+  @media (min-width: 1180px) {
+    .cab__logo {
+      width: 56px;
+      height: 56px;
+    }
+    .cab__nav {
+      display: block;
+      margin-left: 12px;
+    }
+    .cab__nav ul {
+      display: flex;
+      gap: clamp(18px, 2.2vw, 34px);
+    }
+    .cab__nav a {
+      position: relative;
+      display: block;
+      padding-block: 10px;
+      font: 500 0.8125rem/1 var(--font-texto);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgb(245 241 233 / 0.86);
+      transition: color 0.3s;
+    }
+    .cab__nav a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 2px;
+      height: 1px;
+      background: var(--oro);
+      transform: scaleX(0);
+      transform-origin: 100% 50%;
+      transition: transform 0.45s var(--ease);
+    }
+    .cab__nav a:hover,
+    .cab__nav a[aria-current='true'] {
+      color: var(--marfil);
+    }
+    .cab__nav a:hover::after,
+    .cab__nav a[aria-current='true']::after {
+      transform: scaleX(1);
+      transform-origin: 0 50%;
+    }
+    .cab__menu {
+      display: none;
+    }
+  }
+
+  /* ── Cajón del menú ─────────────────────────────────────────────────── */
+  .cajon {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(420px, 100%);
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    margin: 0;
+    padding: 0 var(--gutter) max(24px, env(safe-area-inset-bottom));
+    border: 0;
+    background: var(--carbon);
+    color: var(--marfil);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transform: translate3d(100%, 0, 0);
+    transition:
+      transform 0.55s var(--ease),
+      overlay 0.55s allow-discrete,
+      display 0.55s allow-discrete;
+  }
+  .cajon:not([open]) {
+    display: none;
+  }
+  .cajon[open] {
+    transform: none;
+  }
+  @starting-style {
+    .cajon[open] {
+      transform: translate3d(100%, 0, 0);
+    }
+  }
+  .cajon::backdrop {
+    background: rgb(10 14 20 / 0);
+    transition:
+      background-color 0.45s,
+      overlay 0.45s allow-discrete,
+      display 0.45s allow-discrete;
+  }
+  .cajon[open]::backdrop {
+    background: rgb(10 14 20 / 0.6);
+  }
+  @starting-style {
+    .cajon[open]::backdrop {
+      background: rgb(10 14 20 / 0);
+    }
+  }
+  .cajon__cab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--cab-h);
+    flex: none;
+  }
+  .cajon__cab :global(img) {
+    width: 44px;
+    height: 44px;
+  }
+  .cajon__cerrar {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin-right: -12px;
+  }
+  .cajon__cerrar :global(svg) {
+    width: 24px;
+    height: 24px;
+  }
+  .cajon__nav {
+    margin-top: 12px;
+    border-top: 1px solid var(--linea-o);
+  }
+  .cajon__nav a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 64px;
+    border-bottom: 1px solid var(--linea-o);
+    font: 600 1.875rem/1 var(--font-titular);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+  }
+  .cajon__nav a :global(svg) {
+    width: 20px;
+    height: 20px;
+    color: var(--oro);
+    transition: transform 0.35s var(--ease);
+  }
+  .cajon__nav a:active :global(svg) {
+    transform: translateX(4px);
+  }
+  .cajon[open] .cajon__nav li {
+    animation: cajon-item 0.6s var(--ease) both;
+    animation-delay: calc(0.12s + var(--i) * 0.045s);
+  }
+  @keyframes cajon-item {
+    from {
+      opacity: 0;
+      transform: translate3d(24px, 0, 0);
+    }
+  }
+  .cajon__pie {
+    margin-top: auto;
+    padding-top: 36px;
+    display: grid;
+    gap: 14px;
+  }
+  .cajon__pie .rotulo {
+    color: var(--gris);
+  }
+  .cajon__lineas {
+    display: grid;
+    gap: 8px;
+  }
+  .cajon__lineas a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding-inline: 16px;
+    border: 1px solid rgb(182 154 104 / 0.45);
+  }
+  .cajon__lineas :global(svg) {
+    width: 20px;
+    height: 20px;
+    color: var(--oro);
+  }
+  .cajon__lineas .cifra {
+    margin-left: auto;
+    font-weight: 500;
+  }
+  .cajon__ig {
+    justify-self: start;
+    color: var(--gris);
+  }
+  .cajon__ig :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+</style>

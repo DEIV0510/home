@@ -1,0 +1,38 @@
+---
+// El emblema original de HOME PREMIUM (assets/logo/). No se redibuja: es el PNG del cliente
+// con el fondo negro de afuera del círculo quitado y reducido a varios tamaños (npm run fotos).
+import marca from '../data/marca.json';
+
+interface Props {
+  /** Tamaño en pantalla, en px CSS. */
+  tam: number;
+  /** `sizes` si el tamaño cambia según la pantalla. */
+  sizes?: string;
+  class?: string;
+  alt?: string;
+  prioridad?: boolean;
+}
+const { tam, sizes, class: clase, alt = 'HOME PREMIUM', prioridad = false } = Astro.props;
+const variantes = marca?.emblema.webp ?? [];
+const srcset = variantes.map(([url, w]) => `${url} ${w}w`).join(', ');
+const src = (variantes.find(([, w]) => (w as number) >= tam * 2) ?? variantes.at(-1))?.[0] as string | undefined;
+---
+
+{
+  src ? (
+    <img
+      class={clase}
+      src={src}
+      srcset={srcset}
+      sizes={sizes ?? `${tam}px`}
+      width={tam}
+      height={tam}
+      alt={alt}
+      decoding={prioridad ? 'sync' : 'async'}
+      fetchpriority={prioridad ? 'high' : undefined}
+      loading={prioridad ? undefined : 'lazy'}
+    />
+  ) : (
+    <span class={clase}>{alt}</span>
+  )
+}

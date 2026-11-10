@@ -1,0 +1,65 @@
+---
+import Base from '../layouts/Base.astro';
+import Heroe from '../components/Heroe.astro';
+import Categorias from '../components/Categorias.astro';
+import Catalogo from '../components/Catalogo.astro';
+import Confianza from '../components/Confianza.astro';
+import Instagram from '../components/Instagram.astro';
+import Visor from '../components/Visor.astro';
+import { PRODUCTOS, COLCHON } from '../data/catalogo';
+import { fotosDe, portadaDe, srcset, src } from '../lib/fotos';
+import { HEROE } from '../lib/seleccion';
+import { jsonSeguro } from '../lib/json';
+
+const titulo = 'HOME PREMIUM | Fábrica de muebles: salas, sofás cama y colchones';
+const descripcion =
+  'Fábrica de muebles para el hogar: salas modernas, salas en L, sofás cama, colchones ortopédicos y bases cama con precios publicados. Cotiza por WhatsApp.';
+
+const heroe = portadaDe(HEROE.principal);
+const precarga = heroe ? { srcset: srcset(heroe.avif), sizes: '(min-width: 1024px) 56vw, 100vw' } : undefined;
+
+// Fotos para el visor: [srcset AVIF, srcset WebP, src, ancho, alto, color de fondo].
+const datosFotos = Object.fromEntries(
+  PRODUCTOS.filter((p) => fotosDe(p.id).length).map((p) => [p.id, fotosDe(p.id).map((f) => [srcset(f.avif), srcset(f.webp), src(f.webp, 960), f.w, f.h, f.bg])]),
+);
+
+const site = Astro.site;
+const abs = (ruta: string) => (site ? new URL(ruta, site).href : undefined);
+const lista = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Catálogo HOME PREMIUM',
+  itemListElement: [...PRODUCTOS, { ...COLCHON, medidas: undefined }].map((p, i) => {
+    const foto = portadaDe(p.id);
+    const imagen = foto ? abs(src(foto.webp, 960)) : undefined;
+    const precios = 'medidas' in p && p.medidas ? p.medidas.map((m) => m.precio) : [p.precio];
+    return {
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Product',
+        name: p.nombre,
+        brand: { '@type': 'Brand', name: 'HOME PREMIUM' },
+        ...(imagen ? { image: imagen } : {}),
+        ...(abs(`/#p-${p.id}`) ? { url: abs(`/#p-${p.id}`) } : {}),
+        offers:
+          precios.length > 1
+            ? { '@type': 'AggregateOffer', priceCurrency: 'COP', lowPrice: Math.min(...precios), highPrice: Math.max(...precios), offerCount: precios.length }
+            : { '@type': 'Offer', priceCurrency: 'COP', price: precios[0] },
+      },
+    };
+  }),
+};
+---
+
+<Base titulo={titulo} descripcion={descripcion} intro precarga={precarga} jsonld={[lista]}>
+  <Heroe />
+  <Categorias />
+  <Catalogo />
+  <Confianza />
+  <Instagram />
+  <Fragment slot="final">
+    <Visor />
+    <script type="application/json" id="datos-fotos" set:html={jsonSeguro(datosFotos)} />
+  </Fragment>
+</Base>

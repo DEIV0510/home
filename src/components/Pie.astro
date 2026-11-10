@@ -1,0 +1,251 @@
+---
+// Contacto + pie. Las dos líneas, cada una con WhatsApp y llamada. Sin dirección física,
+// horarios ni cobertura (el cliente no los entregó).
+import Emblema from './Emblema.astro';
+import Icono from './Icono.astro';
+import { LINEAS, INSTAGRAM, LINEA_PRINCIPAL, DESCRIPCION_CORTA } from '../lib/empresa';
+import { wa, MENSAJES } from '../lib/mensajes';
+import { NAV } from '../lib/nav';
+import { CATEGORIAS } from '../data/catalogo';
+
+interface Props {
+  base?: string;
+}
+const { base = '' } = Astro.props;
+const ano = new Date().getFullYear();
+---
+
+<footer class="pie">
+  <section id="contacto" class="pie__contacto" aria-labelledby="contacto-titulo">
+    <div class="contenedor pie__contacto-fila">
+      <div class="revela">
+        <h2 id="contacto-titulo" class="titular h2">Habla con un <em>asesor</em></h2>
+        <p class="pie__invita">Si encontraste el mueble ideal, escríbenos y agenda tu pedido.</p>
+      </div>
+      <ul class="pie__lineas revela" style="--retraso:120ms">
+        {
+          LINEAS.map((l) => (
+            <li class="pie__linea">
+              <p class="rotulo">{l.nombre}</p>
+              <p class="pie__numero cifra">{l.visible}</p>
+              <div class="pie__linea-acciones">
+                <a class="btn btn--oro" href={wa(l.internacional, MENSAJES.general)} target="_blank" rel="noopener">
+                  <Icono nombre="whatsapp" />
+                  <span>WhatsApp</span>
+                </a>
+                <a class="btn btn--linea" href={`tel:+${l.internacional}`}>
+                  <Icono nombre="telefono" />
+                  <span>Llamar</span>
+                </a>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <div class="pie__cuerpo">
+    <div class="contenedor pie__rejilla">
+      <div class="pie__marca">
+        <Emblema tam={88} alt="HOME PREMIUM" />
+        <p>{DESCRIPCION_CORTA}</p>
+        <a class="btn btn--linea pie__wa" href={wa(LINEA_PRINCIPAL.internacional, MENSAJES.general)} target="_blank" rel="noopener" data-lineas data-mensaje={MENSAJES.general}>
+          <Icono nombre="whatsapp" />
+          <span>Escríbenos</span>
+        </a>
+      </div>
+      <nav class="pie__col" aria-label="Navegación del pie">
+        <p class="rotulo">Navegación</p>
+        <ul>
+          {
+            NAV.map((n) => (
+              <li>
+                <a href={`${base}${n.href}`}>{n.texto}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+      <div class="pie__col">
+        <p class="rotulo">Categorías</p>
+        <ul>
+          {
+            CATEGORIAS.map((c) => (
+              <li>
+                <a href={`${base}#${c.id}`}>{c.nombre}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="pie__col">
+        <p class="rotulo">Contacto</p>
+        <ul>
+          {
+            LINEAS.map((l) => (
+              <li>
+                <a href={`tel:+${l.internacional}`} class="cifra">
+                  Tel. {l.numero}
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a href={INSTAGRAM.url} target="_blank" rel="noopener">
+              Instagram @{INSTAGRAM.usuario}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="contenedor pie__legal">
+      <p>© {ano} HOME PREMIUM</p>
+      <ul>
+        <li><a href="/privacidad/">Política de privacidad</a></li>
+        <li><a href="/terminos/">Términos y condiciones</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .pie {
+    background: var(--carbon);
+    color: var(--marfil);
+  }
+  .pie__contacto {
+    padding: clamp(72px, 10vw, 128px) var(--gutter);
+    background: var(--noche);
+    scroll-margin-top: var(--cab-h);
+  }
+  .pie__contacto-fila {
+    display: grid;
+    gap: 36px;
+  }
+  .pie__contacto em {
+    color: var(--oro);
+  }
+  .pie__invita {
+    margin-top: 16px;
+    max-width: 36ch;
+    color: rgb(245 241 233 / 0.82);
+    font-size: 1.0625rem;
+  }
+  .pie__lineas {
+    display: grid;
+    gap: 12px;
+  }
+  .pie__linea {
+    padding: 22px 20px;
+    border: 1px solid rgb(182 154 104 / 0.4);
+  }
+  .pie__linea .rotulo {
+    color: var(--oro);
+  }
+  .pie__numero {
+    margin-top: 8px;
+    font: 600 clamp(2rem, 7vw, 2.75rem) / 1 var(--font-titular);
+    letter-spacing: 0.02em;
+  }
+  .pie__linea-acciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .pie__linea-acciones .btn {
+    padding-inline: 12px;
+  }
+  @media (min-width: 1024px) {
+    .pie__contacto-fila {
+      grid-template-columns: 1fr 1.25fr;
+      align-items: center;
+      gap: 64px;
+    }
+    .pie__lineas {
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+  }
+
+  /* Abajo deja lugar al botón flotante de WhatsApp (56 px + margen) para que no tape los
+     enlaces legales. */
+  .pie__cuerpo {
+    padding: clamp(56px, 8vw, 96px) var(--gutter) calc(96px + env(safe-area-inset-bottom));
+  }
+  .pie__rejilla {
+    display: grid;
+    gap: 40px;
+  }
+  .pie__marca {
+    display: grid;
+    justify-items: start;
+    gap: 18px;
+  }
+  .pie__marca :global(img) {
+    width: 88px;
+    height: 88px;
+  }
+  .pie__marca p {
+    max-width: 36ch;
+    color: var(--gris);
+    font-size: 0.9375rem;
+  }
+  .pie__col .rotulo {
+    color: var(--oro);
+    margin-bottom: 14px;
+  }
+  .pie__col ul {
+    display: grid;
+    gap: 2px;
+  }
+  .pie__col a {
+    display: inline-block;
+    padding-block: 7px;
+    color: rgb(245 241 233 / 0.82);
+    transition: color 0.25s;
+  }
+  .pie__col a:hover {
+    color: var(--oro-claro);
+  }
+  .pie__legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: 48px;
+    padding-top: 22px;
+    border-top: 1px solid var(--linea-o);
+    font-size: 0.875rem;
+    color: var(--gris);
+  }
+  .pie__legal ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 24px;
+  }
+  .pie__legal a {
+    display: inline-block;
+    padding-block: 6px;
+  }
+  .pie__legal a:hover {
+    color: var(--marfil);
+  }
+  @media (min-width: 640px) {
+    .pie__rejilla {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .pie__marca {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (min-width: 1024px) {
+    .pie__rejilla {
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    }
+    .pie__marca {
+      grid-column: auto;
+    }
+  }
+</style>

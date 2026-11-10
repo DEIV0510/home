@@ -1,0 +1,236 @@
+---
+// Pantalla de carga: carbón, el emblema original aparece con un barrido circular y un brillo,
+// línea de progreso dorada y «DISEÑO · CONFORT · CALIDAD». Sale abriéndose en dos paneles.
+//
+// Rendimiento primero:
+// · Solo la primera visita de la sesión, nunca con ahorro de datos o red 2G/3G, ni si se
+//   llega a un ancla (#salas) — lo decide el script en línea del <head> (Base.astro).
+// · La salida la maneja el script de aquí abajo, no el JS principal: no espera fotos. Cuenta
+//   el mínimo desde que el emblema ya está pintado (no desde que empieza la navegación) y
+//   tiene un tope de 2,6 s. Un toque o una tecla la cierran antes.
+// · Con movimiento reducido se muestra igual (el cliente la pidió), pero sin movimiento:
+//   aparece, se ve medio segundo y se desvanece.
+import Emblema from './Emblema.astro';
+---
+
+<div id="carga" class="carga" aria-hidden="true">
+  <div class="carga__panel carga__panel--arriba"></div>
+  <div class="carga__panel carga__panel--abajo"></div>
+  <div class="carga__costura"></div>
+  <div class="carga__centro">
+    <div class="carga__emblema"><Emblema tam={160} sizes="(min-width: 768px) 196px, 160px" prioridad alt="" /></div>
+    <div class="carga__barra"><span></span></div>
+    <p class="carga__lema">Diseño · Confort · Calidad</p>
+  </div>
+</div>
+<script is:inline>
+  (function () {
+    var d = document.documentElement;
+    var el = document.getElementById('carga');
+    if (!d.classList.contains('con-intro')) {
+      el.remove();
+      return;
+    }
+    var reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var MINIMO = reducido ? 450 : 650;
+    var t0 = 0;
+    var docListo = false;
+    var cerrado = false;
+    function cerrar() {
+      if (cerrado) return;
+      cerrado = true;
+      el.classList.add('is-sale');
+      d.classList.remove('intro-activa');
+      setTimeout(function () {
+        d.classList.remove('con-intro');
+        el.remove();
+        document.dispatchEvent(new Event('hp:listo'));
+      }, reducido ? 260 : 820);
+    }
+    function intentar() {
+      if (!t0 || !docListo) return;
+      setTimeout(cerrar, Math.max(0, MINIMO - (performance.now() - t0)));
+    }
+    var caja = el.querySelector('.carga__emblema');
+    var img = caja.querySelector('img');
+    function pintado() {
+      caja.classList.add('is-cargado');
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          if (!t0) {
+            t0 = performance.now();
+            intentar();
+          }
+        });
+      });
+    }
+    if (!img || img.complete) pintado();
+    else {
+      img.addEventListener('load', pintado);
+      img.addEventListener('error', pintado);
+    }
+    function doc() {
+      docListo = true;
+      intentar();
+    }
+    if (document.readyState !== 'loading') doc();
+    else document.addEventListener('DOMContentLoaded', doc);
+    setTimeout(cerrar, 2600);
+    el.addEventListener('pointerdown', cerrar);
+    addEventListener('keydown', cerrar, { once: true });
+  })();
+</script>
+
+<style>
+  .carga {
+    display: none;
+  }
+  :global(html.con-intro) .carga {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .carga__panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50.5%;
+    background: var(--carbon);
+    transition: transform 0.75s var(--ease-io) 0.04s;
+  }
+  .carga__panel--arriba {
+    top: 0;
+  }
+  .carga__panel--abajo {
+    bottom: 0;
+  }
+  .is-sale .carga__panel--arriba {
+    transform: translate3d(0, -101%, 0);
+  }
+  .is-sale .carga__panel--abajo {
+    transform: translate3d(0, 101%, 0);
+  }
+  /* Al salir, la línea dorada se abre de lado a lado justo donde se parten los paneles. */
+  .carga__costura {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--oro);
+    opacity: 0;
+  }
+  .is-sale .carga__costura {
+    animation: carga-costura 0.62s var(--ease) both;
+  }
+  @keyframes carga-costura {
+    0% {
+      opacity: 1;
+      transform: scaleX(0.12);
+    }
+    55% {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(1);
+    }
+  }
+
+  .carga__centro {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 26px;
+    transition:
+      opacity 0.28s,
+      transform 0.4s var(--ease);
+  }
+  .is-sale .carga__centro {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  .carga__emblema {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+  .carga__emblema :global(img) {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+  .carga__emblema.is-cargado :global(img) {
+    animation: carga-emblema 1s var(--ease) both;
+  }
+  @keyframes carga-emblema {
+    from {
+      opacity: 0.35;
+      clip-path: circle(30% at 50% 50%);
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      clip-path: circle(72% at 50% 50%);
+      transform: none;
+    }
+  }
+  /* Un solo brillo que cruza el metal. */
+  .carga__emblema::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 244 220 / 0.38) 50%, transparent 65%);
+    transform: translate3d(-120%, 0, 0);
+    mix-blend-mode: soft-light;
+  }
+  .carga__emblema.is-cargado::after {
+    animation: carga-brillo 1.1s var(--ease-io) 0.35s both;
+  }
+  @keyframes carga-brillo {
+    to {
+      transform: translate3d(120%, 0, 0);
+    }
+  }
+  .carga__barra {
+    width: 148px;
+    height: 1px;
+    background: rgb(182 154 104 / 0.22);
+    overflow: hidden;
+  }
+  .carga__barra span {
+    display: block;
+    height: 100%;
+    background: var(--oro);
+    transform-origin: 0 50%;
+    animation: carga-barra 1.15s var(--ease) both;
+  }
+  @keyframes carga-barra {
+    from {
+      transform: scaleX(0.04);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .carga__lema {
+    color: var(--gris);
+    font: 500 0.6875rem/1 var(--font-texto);
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding-left: 0.34em;
+  }
+  @media (min-width: 768px) {
+    .carga__emblema {
+      width: 196px;
+      height: 196px;
+    }
+  }
+</style>

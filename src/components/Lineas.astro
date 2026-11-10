@@ -1,0 +1,188 @@
+---
+// Elegir línea de atención. Cualquier enlace con [data-lineas] y [data-mensaje] lo abre
+// (app.ts): arma los dos enlaces wa.me con ese mensaje. Sin JS, el enlace original ya va a
+// la línea principal con el mismo mensaje.
+import Icono from './Icono.astro';
+import { LINEAS } from '../lib/empresa';
+import { wa, MENSAJES } from '../lib/mensajes';
+---
+
+<dialog id="lineas" class="hoja" aria-labelledby="lineas-titulo">
+  <div class="hoja__cab">
+    <h2 id="lineas-titulo" class="hoja__titulo">¿Con qué línea quieres hablar?</h2>
+    <button class="hoja__cerrar" type="button" data-cerrar aria-label="Cerrar">
+      <Icono nombre="cerrar" />
+    </button>
+  </div>
+  <p class="hoja__mensaje">
+    <span class="rotulo">Tu mensaje</span>
+    <span data-lineas-texto>{MENSAJES.general}</span>
+  </p>
+  <ul class="hoja__lineas">
+    {
+      LINEAS.map((l) => (
+        <li>
+          <a class="linea" href={wa(l.internacional, MENSAJES.general)} target="_blank" rel="noopener" data-linea={l.internacional}>
+            <Icono nombre="whatsapp" class="linea__wa" />
+            <span class="linea__nombre">{l.nombre}</span>
+            <span class="linea__numero cifra">{l.visible}</span>
+            <Icono nombre="flecha" class="linea__flecha" />
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</dialog>
+
+<style>
+  .hoja {
+    position: fixed;
+    inset: auto 0 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 90svh;
+    margin: 0;
+    padding: 22px var(--gutter) max(24px, env(safe-area-inset-bottom));
+    border: 0;
+    border-top: 1px solid var(--oro);
+    background: var(--carbon);
+    color: var(--marfil);
+    transform: translate3d(0, 100%, 0);
+    transition:
+      transform 0.5s var(--ease),
+      overlay 0.5s allow-discrete,
+      display 0.5s allow-discrete;
+  }
+  .hoja[open] {
+    transform: none;
+  }
+  @starting-style {
+    .hoja[open] {
+      transform: translate3d(0, 100%, 0);
+    }
+  }
+  .hoja::backdrop {
+    background: rgb(10 14 20 / 0);
+    transition:
+      background-color 0.4s,
+      overlay 0.4s allow-discrete,
+      display 0.4s allow-discrete;
+  }
+  .hoja[open]::backdrop {
+    background: rgb(10 14 20 / 0.62);
+  }
+  @starting-style {
+    .hoja[open]::backdrop {
+      background: rgb(10 14 20 / 0);
+    }
+  }
+  .hoja__cab {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .hoja__titulo {
+    font: 600 clamp(1.625rem, 5vw, 2rem) / 1.05 var(--font-titular);
+    text-transform: uppercase;
+  }
+  .hoja__cerrar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    margin: -10px -12px 0 0;
+  }
+  .hoja__cerrar :global(svg) {
+    width: 22px;
+    height: 22px;
+  }
+  .hoja__mensaje {
+    display: grid;
+    gap: 6px;
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: rgb(245 241 233 / 0.06);
+    border-left: 1px solid var(--oro);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: rgb(245 241 233 / 0.88);
+  }
+  .hoja__mensaje .rotulo {
+    color: var(--gris);
+    font-size: 0.6875rem;
+  }
+  .hoja__lineas {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .linea {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 14px;
+    min-height: 64px;
+    padding-inline: 18px;
+    border: 1px solid rgb(182 154 104 / 0.5);
+    transition:
+      background-color 0.3s var(--ease),
+      border-color 0.3s var(--ease);
+  }
+  .linea:hover,
+  .linea:focus-visible {
+    background: rgb(182 154 104 / 0.12);
+    border-color: var(--oro);
+  }
+  .linea :global(.linea__wa) {
+    width: 22px;
+    height: 22px;
+    color: var(--oro);
+  }
+  .linea__nombre {
+    font: 500 0.8125rem/1 var(--font-texto);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .linea__numero {
+    font-size: 1.0625rem;
+    font-weight: 500;
+  }
+  .linea :global(.linea__flecha) {
+    width: 18px;
+    height: 18px;
+    color: var(--oro);
+    transition: transform 0.3s var(--ease);
+  }
+  .linea:hover :global(.linea__flecha) {
+    transform: translateX(4px);
+  }
+  @media (min-width: 640px) {
+    .hoja {
+      inset: 0;
+      width: min(520px, calc(100% - 32px));
+      height: fit-content;
+      margin: auto;
+      padding: 28px 30px 30px;
+      border: 1px solid rgb(182 154 104 / 0.6);
+      transform: translate3d(0, 24px, 0);
+      opacity: 0;
+      transition:
+        transform 0.45s var(--ease),
+        opacity 0.3s,
+        overlay 0.45s allow-discrete,
+        display 0.45s allow-discrete;
+    }
+    .hoja[open] {
+      transform: none;
+      opacity: 1;
+    }
+    @starting-style {
+      .hoja[open] {
+        transform: translate3d(0, 24px, 0);
+        opacity: 0;
+      }
+    }
+  }
+</style>

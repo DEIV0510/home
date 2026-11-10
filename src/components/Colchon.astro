@@ -1,0 +1,234 @@
+---
+// Promoción del colchón (datos del brief): tarjeta especial a todo el ancho del catálogo.
+// La foto promocional aún no llegó: si aparece en assets/colchones/colchon-1.*, ocupa el
+// panel derecho; mientras tanto, el panel lo ocupa el precio.
+import Foto from './Foto.astro';
+import Icono from './Icono.astro';
+import { COLCHON } from '../data/catalogo';
+import { portadaDe } from '../lib/fotos';
+import { precio } from '../lib/formato';
+import { LINEA_PRINCIPAL } from '../lib/empresa';
+import { wa, mensajeColchon } from '../lib/mensajes';
+
+const foto = portadaDe(COLCHON.id);
+const valor = precio(COLCHON.precio);
+const quiero = mensajeColchon(COLCHON.tipos[0], COLCHON.medida, valor);
+---
+
+<article
+  id="p-colchon"
+  class="colchon revela"
+  data-producto
+  data-id={COLCHON.id}
+  data-cat="colchones"
+  data-buscar="colchon colchones ortopedico ortopedicos semiortopedico semiortopedicos"
+  data-precio={COLCHON.precio}
+  data-orden="0"
+  data-medida={COLCHON.medida}
+  data-precio-fmt={valor}
+>
+  <div class="colchon__info">
+    <p class="rotulo colchon__promo">Promoción</p>
+    <h4 class="titular colchon__nombre">{COLCHON.nombre.replace(' y ', ' y ')}</h4>
+    <p class="colchon__medida">Medida <strong class="cifra">{COLCHON.medida}</strong></p>
+    <ul class="colchon__beneficios">
+      <li><Icono nombre="garantia" />Garantía de {COLCHON.garantia}</li>
+      <li><Icono nombre="envio" />{COLCHON.envio}</li>
+    </ul>
+    <fieldset class="colchon__tipo">
+      <legend class="sr">Tipo de colchón</legend>
+      {
+        COLCHON.tipos.map((t, i) => (
+          <label>
+            <input type="radio" name="tipo-colchon" value={t} checked={i === 0} data-tipo-colchon />
+            <span>{t}</span>
+          </label>
+        ))
+      }
+    </fieldset>
+    <div class="colchon__acciones">
+      <a class="btn btn--oro" href={wa(LINEA_PRINCIPAL.internacional, quiero)} target="_blank" rel="noopener" data-quiero>
+        <Icono nombre="whatsapp" />
+        <span>Quiero este</span>
+      </a>
+      <a class="btn-icono colchon__consulta" href={wa(LINEA_PRINCIPAL.internacional, quiero)} target="_blank" rel="noopener" data-lineas data-mensaje={quiero} data-consulta aria-label="Consultar por WhatsApp: colchón">
+        <Icono nombre="whatsapp" />
+      </a>
+    </div>
+    <p class="colchon__nota">Condiciones de la promoción por WhatsApp.</p>
+  </div>
+  <div class="colchon__panel">
+    {
+      foto ? (
+        <Foto foto={foto} alt={COLCHON.nombre} sizes="(min-width: 1024px) 50vw, 100vw" class="colchon__foto" />
+      ) : (
+        <p class="colchon__precio">
+          <span class="rotulo">Precio</span>
+          <span class="titular cifra">{valor}</span>
+          <span class="colchon__precio-medida cifra">{COLCHON.medida}</span>
+        </p>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .colchon {
+    position: relative;
+    display: grid;
+    background: var(--noche);
+    color: var(--marfil);
+    overflow: hidden;
+  }
+  .colchon::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px solid rgb(182 154 104 / 0.35);
+    pointer-events: none;
+  }
+  .colchon__info {
+    position: relative;
+    padding: 34px 26px 30px;
+  }
+  .colchon__promo {
+    color: var(--oro);
+  }
+  .colchon__nombre {
+    margin-top: 12px;
+    font-size: clamp(1.75rem, 3.4vw, 2.875rem);
+    line-height: 1.02;
+    max-width: 16ch;
+  }
+  .colchon__medida {
+    margin-top: 16px;
+    color: rgb(245 241 233 / 0.78);
+  }
+  .colchon__medida strong {
+    margin-left: 6px;
+    color: var(--marfil);
+    font-weight: 600;
+  }
+  .colchon__beneficios {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .colchon__beneficios li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+  }
+  .colchon__beneficios :global(svg) {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    color: var(--oro);
+  }
+  .colchon__tipo {
+    display: inline-grid;
+    grid-auto-flow: column;
+    margin-top: 22px;
+    border: 1px solid var(--linea-o);
+  }
+  .colchon__tipo label {
+    position: relative;
+    cursor: pointer;
+  }
+  .colchon__tipo input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .colchon__tipo span {
+    display: grid;
+    place-items: center;
+    min-height: 44px;
+    padding-inline: 16px;
+    font: 500 0.8125rem/1 var(--font-texto);
+    letter-spacing: 0.08em;
+    text-transform: capitalize;
+    color: rgb(245 241 233 / 0.75);
+    transition:
+      background-color 0.25s,
+      color 0.25s;
+  }
+  .colchon__tipo input:checked + span {
+    background: var(--marfil);
+    color: var(--carbon);
+  }
+  .colchon__tipo input:focus-visible + span {
+    outline: 2px solid var(--oro);
+    outline-offset: -4px;
+  }
+  .colchon__acciones {
+    display: flex;
+    gap: 8px;
+    margin-top: 22px;
+  }
+  .colchon__acciones .btn {
+    flex: 1;
+    max-width: 280px;
+  }
+  .colchon__consulta {
+    color: var(--oro);
+    border-color: rgb(182 154 104 / 0.6);
+  }
+  .colchon__nota {
+    margin-top: 12px;
+    font-size: 0.8125rem;
+    color: var(--gris);
+  }
+  /* En celular el precio va primero (antes de los botones). */
+  .colchon__panel {
+    position: relative;
+    order: -1;
+    display: grid;
+    border-bottom: 1px solid var(--linea-o);
+  }
+  .colchon__panel :global(.colchon__foto),
+  .colchon__panel :global(.colchon__foto img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .colchon__precio {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 8px;
+    padding: 34px 20px 26px;
+    text-align: center;
+  }
+  .colchon__precio .rotulo {
+    color: var(--gris);
+  }
+  .colchon__precio .titular {
+    color: var(--oro);
+    font-size: clamp(3.5rem, 15vw, 7.5rem);
+    line-height: 0.9;
+    letter-spacing: -0.01em;
+  }
+  .colchon__precio-medida {
+    font-size: 0.9375rem;
+    color: rgb(245 241 233 / 0.8);
+    letter-spacing: 0.1em;
+  }
+  @media (min-width: 900px) {
+    .colchon {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+    .colchon__info {
+      padding: clamp(40px, 5vw, 72px);
+    }
+    .colchon__panel {
+      order: 0;
+      min-height: 320px;
+      border-bottom: 0;
+      border-left: 1px solid var(--linea-o);
+    }
+  }
+</style>

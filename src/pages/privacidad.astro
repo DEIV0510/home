@@ -1,0 +1,48 @@
+---
+// Texto base. Falta revisión legal y los datos de identificación del responsable (razón
+// social, NIT, dirección, correo), que el cliente no entregó: docs/PENDIENTES.md.
+import Legal from '../layouts/Legal.astro';
+import { LINEAS, INSTAGRAM } from '../lib/empresa';
+---
+
+<Legal titulo="Política de privacidad" descripcion="Cómo HOME PREMIUM trata los datos personales de quienes visitan su sitio y le escriben por WhatsApp." actualizado="9 de noviembre de 2026">
+  <p>
+    En HOME PREMIUM respetamos tu privacidad. Esta política explica qué datos tratamos cuando visitas este sitio o nos escribes, conforme a la Ley 1581 de 2012 y
+    el Decreto 1377 de 2013 de Colombia.
+  </p>
+
+  <h2>Qué datos recogemos</h2>
+  <p>
+    Este sitio no tiene formularios, cuentas de usuario, pagos en línea ni cookies de publicidad o seguimiento. No pedimos ni guardamos datos personales al
+    navegarlo.
+  </p>
+  <p>
+    Cuando eliges un producto y pulsas un botón de WhatsApp, se abre una conversación con el mensaje ya escrito. Los datos que compartas ahí (nombre, número,
+    dirección de entrega u otros) los recibimos por WhatsApp y los usamos solo para atender tu solicitud, cotizar, coordinar la entrega y hacer seguimiento a tu
+    pedido.
+  </p>
+
+  <h2>Servicios de terceros</h2>
+  <ul>
+    <li>WhatsApp (Meta): la conversación se rige también por las condiciones y la política de privacidad de WhatsApp.</li>
+    <li>Instagram (Meta): el enlace a <a href={INSTAGRAM.url} target="_blank" rel="noopener">@{INSTAGRAM.usuario}</a> abre su sitio.</li>
+    <li>El proveedor de alojamiento del sitio puede registrar datos técnicos de cada visita (dirección IP, navegador, hora) por seguridad.</li>
+  </ul>
+
+  <h2>Tus derechos</h2>
+  <p>
+    Puedes conocer, actualizar, rectificar y pedir la eliminación de tus datos, o revocar la autorización para tratarlos, escribiéndonos por las líneas de
+    atención. Responderemos en los plazos que fija la ley.
+  </p>
+
+  <h2>Contacto</h2>
+  <ul>
+    {
+      LINEAS.map((l) => (
+        <li>
+          {l.nombre}: <a href={`tel:+${l.internacional}`}>{l.visible}</a>
+        </li>
+      ))
+    }
+  </ul>
+</Legal>

@@ -1,0 +1,32 @@
+---
+// <picture> AVIF + WebP con medidas reales y el color de la foto de fondo mientras carga.
+// La foto nunca se deforma: llena su marco con object-fit: cover (el visor la muestra completa).
+import type { Foto as TFoto } from '../lib/fotos';
+import { srcset, src } from '../lib/fotos';
+
+interface Props {
+  foto: TFoto;
+  alt: string;
+  sizes: string;
+  class?: string;
+  prioridad?: boolean;
+  /** object-position, p. ej. '50% 70%'. */
+  foco?: string;
+}
+const { foto, alt, sizes, class: clase, prioridad = false, foco } = Astro.props;
+---
+
+<picture class={clase} style={`--bg:${foto.bg}${foco ? `;--foco:${foco}` : ''}`}>
+  <source type="image/avif" srcset={srcset(foto.avif)} sizes={sizes} />
+  <img
+    src={src(foto.webp)}
+    srcset={srcset(foto.webp)}
+    sizes={sizes}
+    width={foto.w}
+    height={foto.h}
+    alt={alt}
+    loading={prioridad ? 'eager' : 'lazy'}
+    decoding={prioridad ? 'sync' : 'async'}
+    fetchpriority={prioridad ? 'high' : undefined}
+  />
+</picture>

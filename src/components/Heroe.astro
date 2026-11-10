@@ -1,0 +1,363 @@
+---
+// Portada. Protagonista: una foto real del catálogo (la más cuidada), con una segunda sala
+// superpuesta y un marco dorado desplazado (profundidad). Parallax con CSS nativo
+// (scroll-timeline); sin soporte o con movimiento reducido, todo queda quieto.
+// Las entradas son animaciones CSS: no dependen del JS y esperan a la pantalla de carga
+// (html.intro-activa las pausa).
+import Foto from './Foto.astro';
+import Icono from './Icono.astro';
+import { portadaDe } from '../lib/fotos';
+import { PRODUCTOS } from '../data/catalogo';
+import { precio } from '../lib/formato';
+import { LINEA_PRINCIPAL } from '../lib/empresa';
+import { wa, MENSAJES } from '../lib/mensajes';
+import { HEROE } from '../lib/seleccion';
+
+const principal = PRODUCTOS.find((p) => p.id === HEROE.principal)!;
+const secundaria = PRODUCTOS.find((p) => p.id === HEROE.secundaria)!;
+const fotoP = portadaDe(principal.id);
+const fotoS = portadaDe(secundaria.id);
+---
+
+<section id="inicio" class="heroe" aria-labelledby="heroe-titulo">
+  <div class="heroe__rejilla">
+    <div class="heroe__texto">
+      <p class="rotulo heroe__rotulo" data-anima style="--d:0">Fábrica de muebles</p>
+      <h1 id="heroe-titulo" class="titular heroe__titulo">
+        <span class="heroe__l"><span data-anima-l style="--d:1">Tu hogar</span></span>
+        <span class="heroe__l"><span data-anima-l style="--d:2">merece algo</span></span>
+        <span class="heroe__l"><span data-anima-l style="--d:3"><em>extraordinario</em></span></span>
+      </h1>
+      <p class="heroe__sub" data-anima style="--d:4">Diseñamos comodidad. Fabricamos calidad.</p>
+      <div class="heroe__ctas" data-anima style="--d:5">
+        <a class="btn btn--oro" href="#catalogo">
+          <span>Explorar catálogo</span>
+          <Icono nombre="flecha" class="flecha" />
+        </a>
+        <a class="btn btn--linea" href={wa(LINEA_PRINCIPAL.internacional, MENSAJES.cotizar)} target="_blank" rel="noopener" data-lineas data-mensaje={MENSAJES.cotizar}>
+          <Icono nombre="whatsapp" />
+          <span>Cotizar por WhatsApp</span>
+        </a>
+      </div>
+    </div>
+
+    <figure class="heroe__media">
+      <span class="heroe__marco" aria-hidden="true"></span>
+      <a class="heroe__principal" href={`#p-${principal.id}`} aria-label={`${principal.nombre}, ${precio(principal.precio)}: ver en el catálogo`}>
+        {fotoP && <Foto foto={fotoP} alt={principal.nombre} sizes="(min-width: 1024px) 56vw, 100vw" prioridad />}
+      </a>
+      <figcaption class="heroe__pie">
+        <span>{principal.nombre}</span>
+        <span class="cifra">{precio(principal.precio)}</span>
+      </figcaption>
+      {
+        fotoS && (
+          <a class="heroe__secundaria" href={`#p-${secundaria.id}`} aria-label={`${secundaria.nombre}, ${precio(secundaria.precio)}: ver en el catálogo`}>
+            <Foto foto={fotoS} alt={secundaria.nombre} sizes="(min-width: 1024px) 20vw, 34vw" />
+          </a>
+        )
+      }
+    </figure>
+  </div>
+</section>
+
+<style>
+  .heroe {
+    position: relative;
+    overflow: clip;
+    padding: var(--cab-h) 0 clamp(56px, 9vw, 120px);
+    background:
+      radial-gradient(90% 70% at 85% 10%, rgb(41 63 92 / 0.55), transparent 70%),
+      linear-gradient(180deg, var(--noche) 0%, var(--noche-3) 100%);
+    color: var(--marfil);
+  }
+  .heroe__rejilla {
+    display: grid;
+    max-width: var(--max);
+    margin-inline: auto;
+  }
+
+  /* ── Texto ── */
+  .heroe__texto {
+    position: relative;
+    z-index: 2;
+    padding: 28px var(--gutter) 0;
+  }
+  .heroe__rotulo {
+    display: none;
+    color: var(--oro);
+    margin-bottom: 22px;
+  }
+  .heroe__titulo {
+    font-size: clamp(2.625rem, 10.6vw, 5.75rem);
+    line-height: 0.96;
+  }
+  .heroe__l {
+    display: block;
+    overflow: clip;
+    /* Aire para los acentos y la cursiva, que sobresalen de la caja. */
+    padding: 0.06em 0.08em 0.04em 0;
+    margin: -0.06em 0 -0.04em;
+  }
+  .heroe__l > span {
+    display: block;
+  }
+  .heroe__titulo em {
+    color: var(--oro);
+    font-size: 1.04em;
+  }
+  .heroe__sub {
+    margin-top: 16px;
+    font-size: clamp(1rem, 2.4vw, 1.1875rem);
+    color: rgb(245 241 233 / 0.86);
+    letter-spacing: 0.01em;
+  }
+  .heroe__ctas {
+    display: grid;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  /* ── Fotos ── */
+  .heroe__media {
+    position: relative;
+    order: -1;
+    margin: 0;
+  }
+  .heroe__principal {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 11;
+    overflow: hidden;
+    background: var(--noche-2);
+  }
+  .heroe__principal :global(picture) {
+    display: block;
+    height: 100%;
+    background: var(--bg);
+  }
+  .heroe__principal :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 62%;
+    transform: scale(1.08);
+  }
+  /* Velo inferior: une la foto con el azul noche del texto en celular. */
+  .heroe__principal::after {
+    content: '';
+    position: absolute;
+    inset: 55% 0 0;
+    background: linear-gradient(transparent, rgb(16 26 39 / 0.78));
+    pointer-events: none;
+  }
+  .heroe__pie {
+    position: absolute;
+    left: var(--gutter);
+    bottom: 14px;
+    z-index: 1;
+    display: grid;
+    gap: 2px;
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    color: rgb(245 241 233 / 0.92);
+  }
+  .heroe__pie .cifra {
+    color: var(--oro-claro);
+    font-weight: 500;
+  }
+  .heroe__marco {
+    display: none;
+  }
+  .heroe__secundaria {
+    position: absolute;
+    z-index: 2;
+    right: var(--gutter);
+    bottom: -22%;
+    width: 31%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    outline: 4px solid var(--noche);
+    background: var(--noche-2);
+  }
+  .heroe__secundaria :global(picture),
+  .heroe__secundaria :global(img) {
+    width: 100%;
+    height: 100%;
+  }
+  .heroe__secundaria :global(img) {
+    object-fit: cover;
+  }
+  @media (max-width: 1023.98px) {
+    /* En celular la segunda foto asoma bajo la esquina derecha, junto a la primera línea
+       del titular (corta), sin taparlo. */
+    .heroe__secundaria {
+      bottom: -14%;
+      width: 26%;
+    }
+  }
+
+  @media (min-width: 560px) and (max-width: 1023.98px) {
+    .heroe__ctas {
+      grid-template-columns: auto auto;
+      justify-content: start;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .heroe {
+      padding-top: calc(var(--cab-h) + clamp(40px, 6vw, 88px));
+      padding-bottom: clamp(32px, 4vw, 56px);
+    }
+    .heroe__rejilla {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+      align-items: center;
+      gap: clamp(32px, 4vw, 64px);
+      padding-inline: var(--gutter);
+    }
+    .heroe__texto {
+      padding: 0 0 clamp(40px, 6vw, 96px);
+    }
+    .heroe__rotulo {
+      display: block;
+    }
+    /* Tres líneas fijas: el tamaño está medido para que «MERECE ALGO» quepa en la columna. */
+    .heroe__titulo {
+      font-size: clamp(3.5rem, 5.5vw, 5.5rem);
+    }
+    .heroe__l {
+      white-space: nowrap;
+    }
+    .heroe__sub {
+      margin-top: 26px;
+      max-width: 42ch;
+    }
+    .heroe__ctas {
+      grid-template-columns: auto auto;
+      justify-content: start;
+      gap: 12px;
+      margin-top: 36px;
+    }
+    .heroe__media {
+      order: 0;
+      margin: 0 0 clamp(56px, 6vw, 88px);
+    }
+    .heroe__principal {
+      aspect-ratio: 4 / 3;
+    }
+    .heroe__pie {
+      left: 24px;
+      bottom: 22px;
+      font-size: 0.875rem;
+    }
+    /* Marco dorado desplazado abajo a la izquierda; la segunda foto, abajo a la derecha. */
+    .heroe__marco {
+      display: block;
+      position: absolute;
+      inset: 28px 28px -28px -28px;
+      border: 1px solid rgb(182 154 104 / 0.55);
+      pointer-events: none;
+    }
+    .heroe__secundaria {
+      right: -3%;
+      bottom: -17%;
+      width: 34%;
+      outline-width: 8px;
+    }
+  }
+
+  /* ── Entradas ── */
+  [data-anima] {
+    animation: heroe-sube 1s var(--ease) both;
+    animation-delay: calc(0.2s + var(--d) * 0.09s);
+  }
+  [data-anima-l] {
+    animation: heroe-linea 1.1s var(--ease) both;
+    animation-delay: calc(0.15s + var(--d) * 0.09s);
+  }
+  .heroe__principal {
+    animation: heroe-cortina 1.3s var(--ease-io) 0.05s both;
+  }
+  .heroe__marco {
+    animation: heroe-marco 1.4s var(--ease) 0.55s both;
+  }
+  .heroe__secundaria {
+    animation: heroe-secundaria 1.1s var(--ease) 0.75s both;
+  }
+  .heroe__pie {
+    animation: heroe-sube 0.9s var(--ease) 1s both;
+  }
+  :global(html.intro-activa) .heroe :is([data-anima], [data-anima-l], .heroe__principal, .heroe__marco, .heroe__secundaria, .heroe__pie) {
+    animation-play-state: paused;
+  }
+  @keyframes heroe-sube {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0);
+    }
+  }
+  @keyframes heroe-linea {
+    from {
+      transform: translate3d(0, 108%, 0);
+    }
+  }
+  @keyframes heroe-cortina {
+    from {
+      clip-path: inset(0 0 40% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes heroe-marco {
+    from {
+      opacity: 0;
+      transform: translate3d(-18px, -18px, 0);
+    }
+  }
+  @keyframes heroe-secundaria {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 36px, 0);
+    }
+  }
+
+  /* ── Parallax (capas a distinta velocidad) ── */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .heroe__principal :global(img) {
+        animation: paralaje-foto linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 100svh;
+      }
+      .heroe__media {
+        animation: paralaje-media linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 100svh;
+      }
+      .heroe__texto {
+        animation: paralaje-texto linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 100svh;
+      }
+    }
+  }
+  @keyframes paralaje-foto {
+    from {
+      transform: scale(1.08) translate3d(0, 0, 0);
+    }
+    to {
+      transform: scale(1.08) translate3d(0, 6%, 0);
+    }
+  }
+  @keyframes paralaje-media {
+    to {
+      transform: translate3d(0, -40px, 0);
+    }
+  }
+  @keyframes paralaje-texto {
+    to {
+      transform: translate3d(0, 28px, 0);
+    }
+  }
+</style>

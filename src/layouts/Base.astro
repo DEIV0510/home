@@ -1,0 +1,114 @@
+---
+import '../styles/fuentes.css';
+import '../styles/global.css';
+import fuentes from '../data/fuentes.json';
+import marca from '../data/marca.json';
+import Carga from '../components/Carga.astro';
+import Cabecera from '../components/Cabecera.astro';
+import Pie from '../components/Pie.astro';
+import Flotante from '../components/Flotante.astro';
+import Lineas from '../components/Lineas.astro';
+import { LINEAS, INSTAGRAM, DESCRIPCION_CORTA } from '../lib/empresa';
+import { jsonSeguro } from '../lib/json';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  /** Pantalla de carga (solo la portada). */
+  intro?: boolean;
+  /** Foto del LCP para precargar (srcset AVIF). */
+  precarga?: { srcset: string; sizes: string };
+  jsonld?: object[];
+  noindex?: boolean;
+  /** Prefijo de los enlaces a secciones: '' en la portada, '/' en otras páginas. */
+  base?: string;
+}
+const { titulo, descripcion, intro = false, precarga, jsonld = [], noindex = false, base = '' } = Astro.props;
+const site = Astro.site;
+const canonical = site ? new URL(Astro.url.pathname, site).href : undefined;
+const og = site ? new URL('/og.jpg', site).href : '/og.jpg';
+
+const tienda = {
+  '@context': 'https://schema.org',
+  '@type': 'FurnitureStore',
+  name: 'HOME PREMIUM',
+  description: DESCRIPCION_CORTA,
+  telephone: LINEAS.map((l) => `+${l.internacional}`),
+  sameAs: [INSTAGRAM.url],
+  ...(site ? { url: site.href, image: og, logo: new URL(marca!.iconos.i512, site).href } : {}),
+};
+---
+
+<!doctype html>
+<html lang="es-CO">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    {canonical && !noindex && <link rel="canonical" href={canonical} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#151515" />
+    <meta name="color-scheme" content="light" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <script is:inline define:vars={{ intro }}>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        // Respaldo: si el JS principal no llega en 6 s, se muestra todo (app.ts lo cancela).
+        window.__hpRespaldo = setTimeout(function () {
+          d.classList.add('mostrar-todo');
+        }, 6000);
+        if (!intro) return;
+        try {
+          var c = navigator.connection || {};
+          var lenta = c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || '');
+          if (!lenta && !location.hash && !sessionStorage.getItem('hp-intro')) {
+            d.classList.add('con-intro', 'intro-activa');
+            sessionStorage.setItem('hp-intro', '1');
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="preload" href={fuentes.titular} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={fuentes.texto} as="font" type="font/woff2" crossorigin />
+    {precarga && <link rel="preload" as="image" type="image/avif" imagesrcset={precarga.srcset} imagesizes={precarga.sizes} fetchpriority="high" />}
+
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    {marca && <link rel="icon" href={marca.iconos.i192} type="image/png" sizes="192x192" />}
+    {marca && <link rel="apple-touch-icon" href={marca.iconos.i180} />}
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:site_name" content="HOME PREMIUM" />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descripcion} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={og} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="HOME PREMIUM — salas, sofás cama y colchones" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" set:html={jsonSeguro(tienda)} />
+    {jsonld.map((j) => <script type="application/ld+json" set:html={jsonSeguro(j)} />)}
+  </head>
+  <body>
+    <a class="salto" href="#contenido">Saltar al contenido</a>
+    {intro && <Carga />}
+    <Cabecera base={base} />
+    <main id="contenido">
+      <slot />
+    </main>
+    <Pie base={base} />
+    <Flotante />
+    <Lineas />
+    <slot name="final" />
+    <script>
+      import '../scripts/app.ts';
+    </script>
+  </body>
+</html>

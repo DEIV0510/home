@@ -1,0 +1,35 @@
+{
+  "origen": "assets/logo/emblema-home-premium.png",
+  "emblema": {
+    "webp": [
+      [
+        "/marca/emblema-96.c78558a9.webp",
+        96
+      ],
+      [
+        "/marca/emblema-160.c78558a9.webp",
+        160
+      ],
+      [
+        "/marca/emblema-240.c78558a9.webp",
+        240
+      ],
+      [
+        "/marca/emblema-320.c78558a9.webp",
+        320
+      ],
+      [
+        "/marca/emblema-480.c78558a9.webp",
+        480
+      ]
+    ]
+  },
+  "iconos": {
+    "i16": "/marca/icono-i16.c78558a9.png",
+    "i32": "/marca/icono-i32.c78558a9.png",
+    "i180": "/marca/icono-i180.c78558a9.png",
+    "i192": "/marca/icono-i192.c78558a9.png",
+    "i512": "/marca/icono-i512.c78558a9.png",
+    "m512": "/marca/icono-m512.c78558a9.png"
+  }
+}

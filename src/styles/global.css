@@ -1,0 +1,368 @@
+/* HOME PREMIUM — sistema visual (docs/DISENO.md).
+   Esquinas rectas, dorado solo para acentos y acciones, fotos protagonistas. */
+
+:root {
+  --carbon: #151515;
+  --carbon-2: #1d1d1c;
+  --noche: #172536;
+  --noche-2: #1f3149;
+  --noche-3: #101a27;
+  --oro: #b69a68;
+  --oro-claro: #cdb68b;
+  /* Dorado oscuro para texto sobre marfil (5:1). */
+  --oro-tinta: #7a6136;
+  --marfil: #f5f1e9;
+  --marfil-2: #ebe4d6;
+  --arena: #ddd3c1;
+  --gris: #a8a29a;
+  --gris-tinta: #5d5850;
+  --blanco: #ffffff;
+  --tinta: #151515;
+  --linea: rgb(21 21 21 / 0.14);
+  --linea-o: rgb(245 241 233 / 0.16);
+
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+  --ease-io: cubic-bezier(0.7, 0, 0.3, 1);
+
+  --cab-h: 64px;
+  --barra-h: 0px;
+  --gutter: clamp(16px, 4.6vw, 64px);
+  --max: 1320px;
+}
+@media (min-width: 1024px) {
+  :root {
+    --cab-h: 76px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+[hidden] {
+  display: none !important;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--carbon);
+  scroll-behavior: smooth;
+  /* Los «reveal» no deben empujar el punto de lectura al aparecer. */
+  overflow-anchor: none;
+  /* Al abrir una capa (menú, líneas, visor) la página no salta al quitar la barra de scroll. */
+  scrollbar-gutter: stable;
+}
+html.capa-abierta {
+  overflow: hidden;
+}
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--marfil);
+  color: var(--tinta);
+  font: 400 1rem/1.6 var(--font-texto);
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+figure,
+fieldset {
+  margin: 0;
+}
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+:focus-visible {
+  outline: 2px solid var(--oro);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--oro);
+  color: var(--carbon);
+}
+
+.salto {
+  position: fixed;
+  left: 16px;
+  top: 12px;
+  z-index: 200;
+  padding: 12px 18px;
+  background: var(--oro);
+  color: var(--carbon);
+  font-weight: 600;
+  transform: translateY(-160%);
+  transition: transform 0.2s;
+}
+.salto:focus {
+  transform: none;
+}
+.sr {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Estructura ─────────────────────────────────────────────────────────── */
+.contenedor {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+}
+.seccion {
+  padding: clamp(72px, 11vw, 140px) var(--gutter);
+  scroll-margin-top: var(--cab-h);
+}
+.oscuro {
+  background: var(--carbon);
+  color: var(--marfil);
+}
+.noche {
+  background: var(--noche);
+  color: var(--marfil);
+}
+
+/* ── Tipografía ─────────────────────────────────────────────────────────── */
+.titular {
+  font-family: var(--font-titular);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.titular em,
+.cursiva {
+  font-style: italic;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.h2 {
+  font-size: clamp(2.375rem, 6.4vw, 4.75rem);
+}
+.rotulo {
+  font: 500 0.75rem/1.2 var(--font-texto);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.dorado {
+  color: var(--oro);
+}
+.claro .dorado,
+.dorado-tinta {
+  color: var(--oro-tinta);
+}
+.cifra {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ── Botones ────────────────────────────────────────────────────────────── */
+.btn {
+  --btn-relleno: var(--oro-claro);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid transparent;
+  font: 600 0.8125rem/1.1 var(--font-texto);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    color 0.35s var(--ease),
+    border-color 0.35s var(--ease),
+    transform 0.2s var(--ease);
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--btn-relleno);
+  transform: scaleX(0);
+  transform-origin: 100% 50%;
+  transition: transform 0.5s var(--ease);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+.btn .flecha {
+  transition: transform 0.35s var(--ease);
+}
+@media (hover: hover) {
+  .btn:hover::before {
+    transform: scaleX(1);
+    transform-origin: 0 50%;
+  }
+  .btn:hover .flecha {
+    transform: translateX(4px);
+  }
+}
+.btn--oro {
+  background: var(--oro);
+  color: var(--carbon);
+}
+.btn--linea {
+  --btn-relleno: var(--marfil);
+  border-color: rgb(245 241 233 / 0.55);
+  color: var(--marfil);
+}
+@media (hover: hover) {
+  .btn--linea:hover {
+    color: var(--carbon);
+    border-color: var(--marfil);
+  }
+}
+.btn--tinta {
+  --btn-relleno: var(--noche);
+  background: var(--carbon);
+  color: var(--marfil);
+}
+.btn--bloque {
+  width: 100%;
+}
+
+.btn-icono {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border: 1px solid currentColor;
+  transition:
+    background-color 0.3s var(--ease),
+    color 0.3s var(--ease),
+    border-color 0.3s var(--ease),
+    transform 0.2s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-icono svg {
+  width: 20px;
+  height: 20px;
+}
+.btn-icono:active {
+  transform: scale(0.96);
+}
+
+.enlace-linea {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-block: 6px;
+}
+.enlace-linea::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0.35);
+  transform-origin: 0 50%;
+  transition: transform 0.45s var(--ease);
+}
+@media (hover: hover) {
+  .enlace-linea:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* ── Aparición al hacer scroll ──────────────────────────────────────────── */
+/* Solo con JS (html.js). Si el JS no llega, html.mostrar-todo (respaldo de 6 s que el JS
+   cancela en su primera línea) deja todo visible. */
+/* Usa `translate` (no `transform`) para no pisar el hover de las tarjetas; su transición
+   también incluye transform y sombra, sin retraso, por la misma razón. */
+html.js .revela {
+  opacity: 0;
+  translate: 0 28px;
+}
+html.js .revela.is-visible,
+html.mostrar-todo .revela {
+  opacity: 1;
+  translate: none;
+  transition:
+    opacity 0.9s var(--ease) var(--retraso, 0ms),
+    translate 0.9s var(--ease) var(--retraso, 0ms),
+    transform 0.5s var(--ease),
+    box-shadow 0.5s var(--ease);
+}
+
+/* ── Movimiento reducido ────────────────────────────────────────────────── */
+/* Sin desplazamientos ni parallax; los fundidos se acortan. La pantalla de carga sigue
+   (pedida por el cliente), pero sin movimiento: ver Carga.astro. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+  html.js .revela {
+    translate: none;
+  }
+}
