@@ -33,7 +33,7 @@ const datos = CATEGORIAS.map((c) => {
         datos.map((c, i) => (
           <li class="revela" style={`--retraso:${(i % 3) * 90}ms`}>
             <a class:list={['cat', c.foto ? 'cat--foto' : 'cat--placa']} href={`#${c.destino}`} data-ir-grupo={c.destino}>
-              {c.foto && <Foto foto={c.foto} alt="" sizes="(min-width: 1024px) 31vw, 48vw" class="cat__foto" />}
+              {c.foto && <Foto foto={c.foto} alt="" sizes={i === 0 ? '(min-width: 768px) 50vw, 100vw' : i === 1 ? '50vw' : '(min-width: 768px) 33vw, 50vw'} class="cat__foto" />}
               {!c.foto && c.id === 'colchones' && <span class="cat__cifra titular cifra">{precio(COLCHON.precio)}</span>}
               {!c.foto && c.sinProductos && <span class="cat__cifra cat__pregunta">Pregunta por los modelos</span>}
               <span class="cat__texto">
@@ -74,10 +74,18 @@ const datos = CATEGORIAS.map((c) => {
     width: 18px;
     height: 18px;
   }
+  /* 5 colecciones. Celular: Salas a todo el ancho y 2×2 debajo. Tablet y escritorio: Salas y
+     Sofás cama grandes arriba; Colchones, Comedores y Tocadores en tres columnas. */
   .cats__rejilla {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+  }
+  .cats__rejilla > li:first-child {
+    grid-column: 1 / -1;
+  }
+  .cats__rejilla > li:first-child .cat {
+    aspect-ratio: 16 / 10;
   }
   .cat {
     position: relative;
@@ -174,8 +182,17 @@ const datos = CATEGORIAS.map((c) => {
   }
   @media (min-width: 768px) {
     .cats__rejilla {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 16px;
+    }
+    .cats__rejilla > li {
+      grid-column: span 2;
+    }
+    .cats__rejilla > li:nth-child(-n + 2) {
+      grid-column: span 3;
+    }
+    .cats__rejilla > li:nth-child(-n + 2) .cat {
+      aspect-ratio: 16 / 10;
     }
     .cat {
       aspect-ratio: 4 / 5;
@@ -192,7 +209,7 @@ const datos = CATEGORIAS.map((c) => {
     }
   }
   @media (min-width: 1100px) {
-    .cat {
+    .cats__rejilla > li:nth-child(n + 3) .cat {
       aspect-ratio: 5 / 4;
     }
   }

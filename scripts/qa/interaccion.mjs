@@ -1,7 +1,7 @@
 // Pruebas de interacción con Chrome real contra el build (serve-dist). Uso:
 //   node scripts/qa/interaccion.mjs [url]
 // Cubre: catálogo completo y precios exactos, cada enlace de WhatsApp (número, mensaje
-// codificado y texto esperado), filtros, buscador, orden, medidas, colchón, hoja de líneas,
+// codificado y texto esperado), filtros, buscador, orden, colchón, hoja de líneas,
 // visor, menú móvil, botón atrás, anclas con filtros, flotante, pantalla de carga, sin JS.
 import { chromium } from 'playwright-core';
 import { PRODUCTOS, COLCHON } from '../../src/data/catalogo.ts';
@@ -87,7 +87,7 @@ const tarjetas = await page.$$eval('article.tarjeta', (els) =>
   })),
 );
 const salas = tarjetas.filter((t) => t.cat === 'salas');
-prueba(salas.length === 28, `salas: hay ${salas.length} (26 del brief + 2 combos del PowerPoint)`);
+prueba(salas.length === 26, `salas: hay ${salas.length}, deben ser las 26 del brief`);
 for (const [nombre, valor] of BRIEF) {
   const t = tarjetas.find((x) => x.nombre === nombre);
   prueba(t, `falta «${nombre}»`);
@@ -95,7 +95,7 @@ for (const [nombre, valor] of BRIEF) {
 }
 prueba(new Set(tarjetas.map((t) => t.id)).size === tarjetas.length, 'hay productos duplicados');
 prueba(tarjetas.filter((t) => t.cat === 'sofas-cama').length === 2, 'sofás cama ≠ 2');
-prueba(tarjetas.filter((t) => t.cat === 'bases-cama').length === 13, 'bases cama ≠ 13');
+prueba(!tarjetas.some((t) => /base-cama|sala-l-baul-.*sofa-cama/.test(t.id)), 'quedó una base cama o un combo (los quitó el cliente)');
 for (const p of PRODUCTOS) {
   const t = tarjetas.find((x) => x.id === p.id);
   if (!t) continue;
@@ -127,12 +127,11 @@ prueba((await page.textContent('#instagram')).includes('Visitar Instagram') || (
 const contarTarjetas = () => page.$$eval('[data-producto]', (els) => els.filter((e) => !e.hidden && !e.closest('[hidden]')).length);
 const ESPERA = {
   todo: PRODUCTOS.length + 1 + 2,
-  salas: 28,
+  salas: 26,
   compacta: PRODUCTOS.filter((p) => p.etiquetas?.includes('compacta')).length,
   'en-l': PRODUCTOS.filter((p) => p.etiquetas?.includes('en-l')).length,
   'sofas-cama': 2,
   colchones: 1,
-  'bases-cama': 13,
 };
 for (const [f, n] of Object.entries(ESPERA)) {
   await page.click(`[data-filtro="${f}"]`);
@@ -182,13 +181,7 @@ prueba(ps.every((v, i) => i === 0 || ps[i - 1] >= v), 'orden mayor precio falla'
 await page.selectOption('[data-ordenar]', 'destacados');
 await page.waitForTimeout(600);
 
-// ── 6. Medidas de bases cama y tipo de colchón ──────────────────────────────────────────
-const base = PRODUCTOS.find((p) => p.id === 'base-cama-trenzada');
-await page.click('#p-base-cama-trenzada .medidas__op:nth-child(2)');
-const tb = await page.$eval('#p-base-cama-trenzada', (e) => ({ precio: e.querySelector('[data-precio-texto]').textContent, quiero: e.querySelector('[data-quiero]').href, desde: e.querySelector('[data-desde]').hidden }));
-prueba(tb.precio === precio(base.medidas[1].precio), `medida 120: precio ${tb.precio}`);
-prueba(tb.desde, 'medida 120: sigue diciendo «Desde»');
-prueba(textoWa(tb.quiero) === mensajeQuiero({ articulo: 'la', nombre: base.nombre, precio: precio(base.medidas[1].precio), medida: 120 }), `medida 120: mensaje ${textoWa(tb.quiero)}`);
+// ── 6. Tipo de colchón ──────────────────────────────────────────────────────────────────
 await page.click('#p-colchon .colchon__tipo label:nth-child(3)');
 const semi = await page.$eval('#p-colchon [data-quiero]', (a) => a.href);
 prueba(textoWa(semi) === mensajeColchon('semiortopédico', COLCHON.medida, precio(COLCHON.precio)), `colchón semiortopédico: ${textoWa(semi)}`);
@@ -237,9 +230,9 @@ prueba(page.url().endsWith('#colchones'), 'menú: la dirección no cambió a #co
 await page.click('[data-filtro="en-l"]');
 await page.waitForTimeout(600);
 await page.evaluate(() => document.querySelector('#categorias').scrollIntoView());
-await page.click('#categorias a[href="#bases-cama"]');
+await page.click('#categorias a[href="#sofas-cama"]');
 await page.waitForTimeout(1500);
-prueba(!(await page.$eval('#bases-cama', (e) => e.hidden)), 'categoría con filtro activo: el grupo sigue oculto');
+prueba(!(await page.$eval('#sofas-cama', (e) => e.hidden)), 'categoría con filtro activo: el grupo sigue oculto');
 prueba((await page.getAttribute('[data-filtro="todo"]', 'aria-pressed')) === 'true', 'categoría con filtro activo: no quitó el filtro');
 
 // ── 11. Flotante y cabecera ─────────────────────────────────────────────────────────────

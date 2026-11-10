@@ -13,7 +13,7 @@ const fuentes = JSON.parse(fs.readFileSync('src/data/fuentes.json', 'utf8'));
 const marca = JSON.parse(fs.readFileSync('src/data/marca.json', 'utf8'));
 const { fotos } = JSON.parse(fs.readFileSync('src/data/fotos.json', 'utf8'));
 const archivo = (url) => pathToFileURL(path.resolve('public' + url)).href;
-const foto = (id) => archivo(fotos[id][0].webp.at(-1)[0]);
+const foto = ({ id, n }) => archivo(fotos[id].find((f) => f.n === n).webp.at(-1)[0]);
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:C;src:url(${archivo(fuentes.titular)});font-weight:600}
@@ -28,11 +28,11 @@ h1 em{display:block;font:italic 500 74px/1 C;text-transform:none;color:#b69a68;m
 p{font-size:21px;letter-spacing:.02em;color:rgba(245,241,233,.85)}
 .der{position:relative;padding:56px 56px 56px 8px}
 .marco{position:absolute;inset:84px 28px 28px 36px;border:1px solid rgba(182,154,104,.6)}
-.foto{position:relative;width:100%;height:100%;object-fit:cover;object-position:50% 60%}
+.foto{position:relative;width:100%;height:100%;object-fit:cover;object-position:${HEROE.principal.foco}}
 </style></head><body>
 <div class="izq"><img class="emblema" src="${archivo(marca.emblema.webp.at(-2)[0])}">
 <div><h1>Tu hogar<br>merece algo<em>extraordinario</em></h1></div>
-<p>Salas · Sofás cama · Colchones · Bases cama</p></div>
+<p>Salas · Sofás cama · Colchones</p></div>
 <div class="der"><span class="marco"></span><img class="foto" src="${foto(HEROE.principal)}"></div>
 </body></html>`;
 

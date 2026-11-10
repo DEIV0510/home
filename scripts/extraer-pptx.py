@@ -15,13 +15,11 @@ import zipfile
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MATERIAL = os.path.join(RAIZ, '_material-cliente')
 SALAS = 'CATALOGO SALAS HOME PREMIUM(2).pptx'
-CAMAS = 'CATALOGO BASE CAMAS.pptx'
 
 # (catálogo, diapositiva, archivo interno, destino en assets/)
+# No se extraen, por decisión del cliente (2026-11-09): las diapositivas 4 y 5 de salas (combos
+# «Sala L baúl (especial) y sofá cama») ni el catálogo de bases cama (CATALOGO BASE CAMAS.pptx).
 MAPA = [
-    (SALAS, 4, 'image10.png', 'salas/sala-l-baul-y-sofa-cama-1.png'),
-    (SALAS, 4, 'image11.png', 'salas/sala-l-baul-y-sofa-cama-2.png'),
-    (SALAS, 5, 'image12.png', 'salas/sala-l-baul-especial-y-sofa-cama-1.png'),
     (SALAS, 6, 'image13.png', 'salas/sala-cubo-pequena-1.png'),
     (SALAS, 6, 'image14.png', 'salas/sala-cubo-pequena-2.png'),
     (SALAS, 7, 'image16.png', 'salas/sala-rinonera-1.png'),
@@ -45,24 +43,9 @@ MAPA = [
     (SALAS, 16, 'image33.png', 'sofas-cama/sofa-cama-150-2.png'),
     (SALAS, 17, 'image34.png', 'sofas-cama/sofa-cama-180-1.png'),
     (SALAS, 17, 'image35.png', 'sofas-cama/sofa-cama-180-2.png'),
-    (CAMAS, 3, 'image9.png', 'bases-cama/base-cama-capitoneada-luces-led-1.png'),
-    (CAMAS, 4, 'image12.png', 'bases-cama/base-cama-espejo-m-piecero-1.png'),
-    (CAMAS, 5, 'image13.png', 'bases-cama/base-cama-nube-rayada-1.png'),
-    (CAMAS, 6, 'image14.png', 'bases-cama/base-cama-nube-almeja-1.png'),
-    (CAMAS, 7, 'image15.png', 'bases-cama/base-cama-m-espejo-1.png'),
-    (CAMAS, 8, 'image17.png', 'bases-cama/base-cama-trenzada-led-espejo-1.png'),
-    (CAMAS, 9, 'image18.png', 'bases-cama/base-cama-trenzada-piecero-1.png'),
-    (CAMAS, 10, 'image19.png', 'bases-cama/base-cama-trenzada-1.png'),
-    (CAMAS, 11, 'image20.png', 'bases-cama/base-cama-reina-1.png'),
-    (CAMAS, 12, 'image21.png', 'bases-cama/base-cama-triangulo-1.png'),
-    (CAMAS, 13, 'image22.png', 'bases-cama/base-cama-capitoneada-cuadrada-1.png'),
-    (CAMAS, 14, 'image23.png', 'bases-cama/base-cama-rajada-piecero-1.png'),
-    (CAMAS, 15, 'image24.png', 'bases-cama/base-cama-capitoneada-copete-1.png'),
     # Piezas del catálogo que NO son foto de producto: se guardan como referencia.
     (SALAS, 1, 'image7.jpg', '../_material-cliente/extraido/portada-catalogo-salas.jpg'),
     (SALAS, 3, 'image9.jpg', '../_material-cliente/extraido/promo-gira-y-gana.jpg'),
-    (CAMAS, 1, 'image4.jpg', '../_material-cliente/extraido/portada-catalogo-bases-cama.jpg'),
-    (CAMAS, 2, 'image5.jpeg', '../_material-cliente/extraido/intro-bases-cama.jpg'),
 ]
 
 lineas = [

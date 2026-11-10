@@ -41,7 +41,7 @@ for (const [nombre, opciones] of [
   for (const [id, sufijo] of [
     ['#categorias', '02-categorias'],
     ['#catalogo', '03-catalogo'],
-    ['#bases-cama', '04-bases'],
+    ['#sofas-cama', '04-sofas'],
     ['#colchones', '05-colchon'],
     ['#otros-muebles', '06-otros'],
     ['#por-que', '07-confianza'],

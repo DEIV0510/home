@@ -12,7 +12,7 @@ export const GET: APIRoute = () => {
   const manifiesto = {
     name: 'HOME PREMIUM',
     short_name: 'HOME PREMIUM',
-    description: 'Fábrica de muebles: salas, sofás cama, colchones y bases cama.',
+    description: 'Fábrica de muebles: salas, sofás cama y colchones.',
     lang: 'es-CO',
     start_url: '/',
     display: 'browser',

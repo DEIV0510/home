@@ -9,11 +9,11 @@
 //   modelos sin foto quedan sin clasificar hasta tenerla (docs/PENDIENTES.md).
 // · Este archivo lo leen también los scripts de Node (tipos borrables, sin imports).
 
-export type CategoriaId = 'salas' | 'sofas-cama' | 'colchones' | 'bases-cama' | 'comedores' | 'tocadores';
+export type CategoriaId = 'salas' | 'sofas-cama' | 'colchones' | 'comedores' | 'tocadores';
 export type Etiqueta = 'en-l' | 'compacta';
 
+/** Precio por ancho (en cm). Opcional: la tarjeta muestra «Desde» y un selector de medida. */
 export interface Medida {
-  /** Ancho en centímetros, tal como lo escribe el catálogo (100, 120, 140). */
   cm: number;
   precio: number;
 }
@@ -40,10 +40,9 @@ export interface Categoria {
 }
 
 export const CATEGORIAS: Categoria[] = [
-  { id: 'salas', nombre: 'Salas', portada: 'sala-l' },
+  { id: 'salas', nombre: 'Salas', portada: 'sala-huevo' },
   { id: 'sofas-cama', nombre: 'Sofás cama', portada: 'sofa-cama-180' },
   { id: 'colchones', nombre: 'Colchones' },
-  { id: 'bases-cama', nombre: 'Bases cama', portada: 'base-cama-nube-almeja' },
   { id: 'comedores', nombre: 'Comedores' },
   { id: 'tocadores', nombre: 'Tocadores' },
 ];
@@ -59,7 +58,6 @@ const sala = (id: string, nombre: string, precio: number, origen: string, etique
 });
 
 const PPT_SALAS = 'Catálogo de salas (PowerPoint), diapositiva';
-const PPT_CAMAS = 'Catálogo de bases cama (PowerPoint), diapositiva';
 
 export const PRODUCTOS: Producto[] = [
   // ── Salas: los 26 modelos del brief, en su orden y con sus precios exactos ──
@@ -89,43 +87,13 @@ export const PRODUCTOS: Producto[] = [
   sala('sala-huevo-con-carro', 'Sala huevo con carro', 2299999, `brief + ${PPT_SALAS} 15`),
   sala('sala-milan-2-0', 'Sala Milán 2.0', 2399999, 'brief'),
   sala('sala-oslo', 'Sala Oslo', 1149999, 'brief'),
-  // Dos combos que trae el catálogo en PowerPoint y no estaban en el brief escrito.
-  sala('sala-l-baul-y-sofa-cama', 'Sala L baúl y sofá cama', 2099999, `${PPT_SALAS} 4`, ['en-l']),
-  sala('sala-l-baul-especial-y-sofa-cama', 'Sala L baúl especial y sofá cama', 2199999, `${PPT_SALAS} 5`, ['en-l']),
 
   // ── Sofás cama ──
   { id: 'sofa-cama-150', nombre: 'Sofá cama de 1.50 m de ancho', categoria: 'sofas-cama', articulo: 'el', precio: 1249999, origen: `brief + ${PPT_SALAS} 16` },
   { id: 'sofa-cama-180', nombre: 'Sofá cama de 1.80 m de ancho', categoria: 'sofas-cama', articulo: 'el', precio: 1299999, origen: `brief + ${PPT_SALAS} 17` },
-
-  // ── Bases cama (catálogo en PowerPoint): precio por ancho 100 / 120 / 140 cm ──
-  ...(
-    [
-      ['base-cama-capitoneada-luces-led', 'Base cama capitoneada con luces LED', [840000, 850000, 870000], 3],
-      ['base-cama-espejo-m-piecero', 'Base cama espejo en “M” con piecero', [980000, 1050000, 1050000], 4],
-      ['base-cama-nube-rayada', 'Base cama nube rayada', [950000, 960000, 990000], 5],
-      ['base-cama-nube-almeja', 'Base cama nube en almeja', [950000, 960000, 990000], 6],
-      ['base-cama-m-espejo', 'Base cama en “M” con espejo', [840000, 850000, 870000], 7],
-      ['base-cama-trenzada-led-espejo', 'Base cama trenzada con luces LED y espejo', [1000000, 1050000, 1070000], 8],
-      ['base-cama-trenzada-piecero', 'Base cama trenzada con piecero', [980000, 1050000, 1050000], 9],
-      ['base-cama-trenzada', 'Base cama trenzada', [770000, 800000, 830000], 10],
-      ['base-cama-reina', 'Base cama Reina', [830000, 850000, 870000], 11],
-      ['base-cama-triangulo', 'Base cama triángulo', [800000, 820000, 850000], 12],
-      ['base-cama-capitoneada-cuadrada', 'Base cama capitoneada cuadrada', [680000, 700000, 750000], 13],
-      ['base-cama-rajada-piecero', 'Base cama rajada con piecero', [810000, 830000, 860000], 14],
-      ['base-cama-capitoneada-copete', 'Base cama capitoneada con copete', [680000, 700000, 720000], 15],
-    ] as const
-  ).map(
-    ([id, nombre, precios, diapositiva]): Producto => ({
-      id,
-      nombre,
-      categoria: 'bases-cama',
-      articulo: 'la',
-      precio: Math.min(...precios),
-      medidas: [100, 120, 140].map((cm, i) => ({ cm, precio: precios[i] })),
-      origen: `${PPT_CAMAS} ${diapositiva}`,
-    }),
-  ),
 ];
+// Fuera del sitio por decisión del cliente (2026-11-09), aunque estén en los PowerPoint: las 13
+// bases cama y los combos «Sala L baúl (especial) y sofá cama». No volver a agregarlos sin su OK.
 
 /** Promoción del colchón: datos del brief, tal cual. */
 export const COLCHON = {

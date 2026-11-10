@@ -13,9 +13,9 @@ import { jsonSeguro } from '../lib/json';
 
 const titulo = 'HOME PREMIUM | Fábrica de muebles: salas, sofás cama y colchones';
 const descripcion =
-  'Fábrica de muebles para el hogar: salas modernas, salas en L, sofás cama, colchones ortopédicos y bases cama con precios publicados. Cotiza por WhatsApp.';
+  'Fábrica de muebles para el hogar: salas modernas, salas en L, sofás cama y colchones ortopédicos con precios publicados. Cotiza por WhatsApp.';
 
-const heroe = portadaDe(HEROE.principal);
+const heroe = fotosDe(HEROE.principal.id).find((f) => f.n === HEROE.principal.n);
 const precarga = heroe ? { srcset: srcset(heroe.avif), sizes: '(min-width: 1024px) 56vw, 100vw' } : undefined;
 
 // Fotos para el visor: [srcset AVIF, srcset WebP, src, ancho, alto, color de fondo].

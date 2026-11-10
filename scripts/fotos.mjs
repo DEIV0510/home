@@ -33,7 +33,7 @@ const MANIFEST_MARCA = 'src/data/marca.json';
 // 400: tarjetas en pantallas 1x · 640: tarjetas en celular 2–3x · 960/1280: héroe y visor.
 const ANCHOS = [400, 640, 960, 1280];
 const AJUSTES = 'avif-q55-e5|webp-q80-e5|v1';
-const CATEGORIAS = ['salas', 'sofas-cama', 'colchones', 'bases-cama', 'comedores', 'tocadores'];
+const CATEGORIAS = ['salas', 'sofas-cama', 'colchones', 'comedores', 'tocadores'];
 
 const md5 = (buf) => crypto.createHash('md5').update(buf).digest('hex');
 const hex = (n) => Math.round(n).toString(16).padStart(2, '0');

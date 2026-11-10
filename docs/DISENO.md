@@ -35,5 +35,4 @@ WhatsApp.
 - «Quiero este» en cada producto, directo a WhatsApp con el mensaje del brief.
 - «Consultar», el botón flotante y la cabecera dejan elegir línea (1 o 2).
 - Productos sin foto: la placa pide las fotos por WhatsApp.
-- Bases cama: al elegir el ancho cambian el precio y el mensaje.
 - Colchón: tarjeta especial con garantía, envío gratis y selector ortopédico/semiortopédico.

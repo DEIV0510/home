@@ -12,7 +12,7 @@ export interface DatosMensaje {
   nombre: string;
   /** Precio ya formateado ($1.299.999). */
   precio: string;
-  /** Ancho elegido en cm (bases cama). */
+  /** Ancho elegido en cm (productos con `medidas`). */
   medida?: number | null;
   /** Con medidas sin elegir: el precio es «desde». */
   desde?: boolean;

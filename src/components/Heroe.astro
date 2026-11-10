@@ -6,17 +6,17 @@
 // (html.intro-activa las pausa).
 import Foto from './Foto.astro';
 import Icono from './Icono.astro';
-import { portadaDe } from '../lib/fotos';
+import { fotosDe } from '../lib/fotos';
 import { PRODUCTOS } from '../data/catalogo';
 import { precio } from '../lib/formato';
 import { LINEA_PRINCIPAL } from '../lib/empresa';
 import { wa, MENSAJES } from '../lib/mensajes';
 import { HEROE } from '../lib/seleccion';
 
-const principal = PRODUCTOS.find((p) => p.id === HEROE.principal)!;
-const secundaria = PRODUCTOS.find((p) => p.id === HEROE.secundaria)!;
-const fotoP = portadaDe(principal.id);
-const fotoS = portadaDe(secundaria.id);
+const principal = PRODUCTOS.find((p) => p.id === HEROE.principal.id)!;
+const secundaria = PRODUCTOS.find((p) => p.id === HEROE.secundaria.id)!;
+const fotoP = fotosDe(principal.id).find((f) => f.n === HEROE.principal.n);
+const fotoS = fotosDe(secundaria.id).find((f) => f.n === HEROE.secundaria.n);
 ---
 
 <section id="inicio" class="heroe" aria-labelledby="heroe-titulo">
@@ -44,7 +44,7 @@ const fotoS = portadaDe(secundaria.id);
     <figure class="heroe__media">
       <span class="heroe__marco" aria-hidden="true"></span>
       <a class="heroe__principal" href={`#p-${principal.id}`} aria-label={`${principal.nombre}, ${precio(principal.precio)}: ver en el catálogo`}>
-        {fotoP && <Foto foto={fotoP} alt={principal.nombre} sizes="(min-width: 1024px) 56vw, 100vw" prioridad />}
+        {fotoP && <Foto foto={fotoP} alt={principal.nombre} sizes="(min-width: 1024px) 56vw, 100vw" foco={HEROE.principal.foco} prioridad />}
       </a>
       <figcaption class="heroe__pie">
         <span>{principal.nombre}</span>
@@ -53,7 +53,7 @@ const fotoS = portadaDe(secundaria.id);
       {
         fotoS && (
           <a class="heroe__secundaria" href={`#p-${secundaria.id}`} aria-label={`${secundaria.nombre}, ${precio(secundaria.precio)}: ver en el catálogo`}>
-            <Foto foto={fotoS} alt={secundaria.nombre} sizes="(min-width: 1024px) 20vw, 34vw" />
+            <Foto foto={fotoS} alt={secundaria.nombre} sizes="(min-width: 1024px) 20vw, 34vw" foco={HEROE.secundaria.foco} />
           </a>
         )
       }
@@ -140,7 +140,7 @@ const fotoS = portadaDe(secundaria.id);
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 50% 62%;
+    object-position: var(--foco, 50% 62%);
     transform: scale(1.08);
   }
   /* Velo inferior: une la foto con el azul noche del texto en celular. */
@@ -187,6 +187,7 @@ const fotoS = portadaDe(secundaria.id);
   }
   .heroe__secundaria :global(img) {
     object-fit: cover;
+    object-position: var(--foco, 50% 50%);
   }
   @media (max-width: 1023.98px) {
     /* En celular la segunda foto asoma bajo la esquina derecha, junto a la primera línea

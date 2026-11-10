@@ -28,14 +28,8 @@ const FILTROS = [
   { id: 'en-l', texto: 'Salas en L', n: salas.filter((p) => p.etiquetas?.includes('en-l')).length },
   { id: 'sofas-cama', texto: 'Sofás cama', n: de('sofas-cama').length },
   { id: 'colchones', texto: 'Colchones', n: 1 },
-  { id: 'bases-cama', texto: 'Bases cama', n: de('bases-cama').length },
 ];
-const GRUPOS: { id: CategoriaId; nota?: string }[] = [
-  { id: 'salas' },
-  { id: 'sofas-cama' },
-  { id: 'colchones' },
-  { id: 'bases-cama', nota: 'Precio según el ancho: 100, 120 o 140 cm.' },
-];
+const GRUPOS: { id: CategoriaId; nota?: string }[] = [{ id: 'salas' }, { id: 'sofas-cama' }, { id: 'colchones' }];
 const OTROS: CategoriaId[] = ['comedores', 'tocadores'];
 const modelos = (n: number) => `${n} ${n === 1 ? 'modelo' : 'modelos'}`;
 let orden = 0;

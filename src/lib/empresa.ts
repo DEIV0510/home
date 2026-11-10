@@ -33,4 +33,4 @@ export const INSTAGRAM = {
 };
 
 export const DESCRIPCION_CORTA =
-  'Fábrica de muebles para el hogar: salas, sofás cama, colchones, bases cama, comedores y tocadores. Atención personalizada por WhatsApp.';
+  'Fábrica de muebles para el hogar: salas, sofás cama, colchones, comedores y tocadores. Atención personalizada por WhatsApp.';

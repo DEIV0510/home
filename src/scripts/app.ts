@@ -418,7 +418,7 @@ if (catalogo) {
   }
   if (f || q || o) aplicar();
 
-  // Medidas de las bases cama y tipo de colchón: cambian precio y mensajes.
+  // Medida elegida (productos con `medidas`) y tipo de colchón: cambian precio y mensajes.
   catalogo.addEventListener('change', (e) => {
     const input = e.target as HTMLInputElement;
     const tarjeta = input.closest<HTMLElement>('[data-producto]');

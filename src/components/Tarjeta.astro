@@ -3,8 +3,8 @@
 //   · «Quiero este» → WhatsApp directo a la línea principal con el mensaje del brief.
 //   · Ícono de WhatsApp → elegir línea (app.ts); sin JS va a la línea principal.
 // Sin foto todavía: una placa con el nombre del modelo que pide las fotos por WhatsApp.
-// Bases cama: el precio depende del ancho (100/120/140 cm); al elegirlo, app.ts cambia el
-// precio y los mensajes.
+// Producto con `medidas` (precio por ancho): «Desde» y un selector; al elegir, app.ts cambia
+// el precio y los mensajes. Hoy ningún producto lo usa.
 import Foto from './Foto.astro';
 import Icono from './Icono.astro';
 import type { Producto } from '../data/catalogo';
@@ -123,10 +123,6 @@ const buscar = normalizar(`${p.nombre} ${etiqueta}`);
     aspect-ratio: 4 / 3;
     overflow: hidden;
     background: var(--marfil-2);
-  }
-  /* Las bases cama vienen en fotos casi cuadradas o verticales. */
-  .tarjeta__media[data-media='bases-cama'] {
-    aspect-ratio: 1;
   }
   .tarjeta__ver {
     display: block;
