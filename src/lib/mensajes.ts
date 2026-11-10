@@ -12,16 +12,9 @@ export interface DatosMensaje {
   nombre: string;
   /** Precio ya formateado ($1.299.999). */
   precio: string;
-  /** Ancho elegido en cm (productos con `medidas`). */
-  medida?: number | null;
-  /** Con medidas sin elegir: el precio es «desde». */
-  desde?: boolean;
 }
 
-const pieza = (d: DatosMensaje) => {
-  const nombre = d.medida ? `${d.nombre} de ${d.medida} cm` : d.nombre;
-  return d.desde ? `${d.articulo} ${nombre} (desde ${d.precio})` : `${d.articulo} ${nombre} de ${d.precio}`;
-};
+const pieza = (d: DatosMensaje) => `${d.articulo} ${d.nombre} de ${d.precio}`;
 
 /** «QUIERO ESTE» — el texto del brief. */
 export const mensajeQuiero = (d: DatosMensaje) =>

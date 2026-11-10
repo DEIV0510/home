@@ -75,17 +75,21 @@ const visibles = (page, sel) => page.$$eval(sel, (els) => els.filter((e) => e.of
 const { ctx, page } = await nueva();
 await page.goto(URL_BASE);
 await listo(page);
-const tarjetas = await page.$$eval('article.tarjeta', (els) =>
+// Tarjetas (con foto, en el carrusel) y filas de la carta (sin foto).
+const tarjetas = await page.$$eval('[data-producto][data-nombre]', (els) =>
   els.map((e) => ({
     id: e.dataset.id,
     cat: e.dataset.cat,
-    nombre: e.querySelector('h4').textContent.trim(),
+    nombre: (e.querySelector('h4, .fila__nombre')?.textContent ?? '').trim(),
     precio: e.querySelector('[data-precio-texto]').textContent.trim(),
     quiero: e.querySelector('[data-quiero]').href,
-    consulta: e.querySelector('.tarjeta__consulta').href,
+    consulta: e.querySelector('[data-consulta]').href,
     foto: e.dataset.foto,
+    tipo: e.matches('.tarjeta') ? 'tarjeta' : 'fila',
   })),
 );
+prueba(tarjetas.every((t) => (t.foto === '1') === (t.tipo === 'tarjeta')), 'un producto con foto quedó en la carta o uno sin foto en el carrusel');
+prueba(tarjetas.filter((t) => t.tipo === 'fila').every((t) => textoWa(t.consulta).startsWith('Hola, ¿me pueden enviar fotos')), 'las filas sin foto no piden fotos');
 const salas = tarjetas.filter((t) => t.cat === 'salas');
 prueba(salas.length === 26, `salas: hay ${salas.length}, deben ser las 26 del brief`);
 for (const [nombre, valor] of BRIEF) {
@@ -99,7 +103,7 @@ prueba(!tarjetas.some((t) => /base-cama|sala-l-baul-.*sofa-cama/.test(t.id)), 'q
 for (const p of PRODUCTOS) {
   const t = tarjetas.find((x) => x.id === p.id);
   if (!t) continue;
-  const esperado = mensajeQuiero({ articulo: p.articulo, nombre: p.nombre, precio: precio(p.precio), desde: Boolean(p.medidas) });
+  const esperado = mensajeQuiero({ articulo: p.articulo, nombre: p.nombre, precio: precio(p.precio) });
   prueba(textoWa(t.quiero) === esperado, `mensaje «Quiero este» de ${p.nombre}: ${textoWa(t.quiero)}`);
 }
 // Mensaje del brief, literal.
@@ -169,16 +173,17 @@ await page.waitForTimeout(350);
 prueba((await contarTarjetas()) === ESPERA.todo, 'limpiar búsqueda no devuelve todo');
 
 // ── 5. Orden ────────────────────────────────────────────────────────────────────────────
-const preciosSalas = () => page.$$eval('[data-grupo="salas"] article.tarjeta', (els) => els.map((e) => Number(e.dataset.precio)));
+// Cada lista (carrusel y carta) se ordena por separado.
+const preciosSalas = () => page.$$eval('[data-grupo="salas"] [data-rejilla]', (rs) => rs.map((r) => [...r.children].map((e) => Number(e.dataset.precio))));
 await page.selectOption('[data-ordenar]', 'precio-asc');
 await page.waitForTimeout(600);
 let ps = await preciosSalas();
-prueba(ps.every((v, i) => i === 0 || ps[i - 1] <= v), 'orden menor precio falla');
+prueba(ps.length === 2 && ps.every((l) => l.every((v, i) => i === 0 || l[i - 1] <= v)), 'orden menor precio falla');
 await page.selectOption('[data-ordenar]', 'precio-desc');
 await page.waitForTimeout(600);
 ps = await preciosSalas();
-prueba(ps.every((v, i) => i === 0 || ps[i - 1] >= v), 'orden mayor precio falla');
-await page.selectOption('[data-ordenar]', 'destacados');
+prueba(ps.every((l) => l.every((v, i) => i === 0 || l[i - 1] >= v)), 'orden mayor precio falla');
+await page.selectOption('[data-ordenar]', 'precio-asc');
 await page.waitForTimeout(600);
 
 // ── 6. Tipo de colchón ──────────────────────────────────────────────────────────────────
@@ -186,9 +191,29 @@ await page.click('#p-colchon .colchon__tipo label:nth-child(3)');
 const semi = await page.$eval('#p-colchon [data-quiero]', (a) => a.href);
 prueba(textoWa(semi) === mensajeColchon('semiortopédico', COLCHON.medida, precio(COLCHON.precio)), `colchón semiortopédico: ${textoWa(semi)}`);
 
+// ── 6b. Carta plegable (celular) y carrusel ────────────────────────────────────────────
+await page.evaluate(() => scrollTo(0, 0));
+const filasVisibles = () => page.$$eval('[data-grupo="salas"] .fila', (els) => els.filter((e) => e.offsetParent !== null).length);
+const sinFotoSalas = PRODUCTOS.filter((p) => p.categoria === 'salas').length - tarjetas.filter((t) => t.cat === 'salas' && t.tipo === 'tarjeta').length;
+prueba((await filasVisibles()) === Math.min(6, sinFotoSalas), `carta plegada: ${await filasVisibles()} filas a la vista`);
+await page.click('[data-grupo="salas"] [data-carta-mas]');
+await page.waitForTimeout(200);
+prueba((await filasVisibles()) === sinFotoSalas, 'carta: «Ver los N modelos» no despliega todo');
+const riel = '[data-grupo="salas"] [data-riel]';
+await page.$eval(riel, (r) => r.scrollIntoView({ block: 'center' }));
+await page.waitForTimeout(300);
+prueba(await page.$eval('[data-grupo="salas"] [data-riel-ant]', (b) => b.disabled), 'carrusel: «anteriores» activo al inicio');
+await page.click('[data-grupo="salas"] [data-riel-sig]');
+await page.waitForTimeout(900);
+prueba((await page.$eval(riel, (r) => r.scrollLeft)) > 100, 'carrusel: «siguientes» no avanza');
+prueba(!(await page.$eval('[data-grupo="salas"] [data-riel-ant]', (b) => b.disabled)), 'carrusel: «anteriores» sigue apagado tras avanzar');
+const totalFotosCarrusel = (await page.$$(`${riel} img`)).length;
+const fotosCarrusel = await page.$$eval(`${riel} img`, (is) => is.filter((i) => i.complete && i.naturalWidth > 0).length);
+prueba(fotosCarrusel === totalFotosCarrusel, `carrusel: ${fotosCarrusel} fotos cargadas de ${totalFotosCarrusel}`);
+
 // ── 7. Hoja de líneas + botón atrás ─────────────────────────────────────────────────────
 const urlAntes = page.url();
-await page.click('#p-sala-charleston .tarjeta__consulta');
+await page.click('#p-sala-charleston [data-consulta]');
 await page.waitForTimeout(400);
 prueba(await page.$eval('#lineas', (d) => d.open), 'líneas: no abre');
 const lineas = await page.$$eval('#lineas [data-linea]', (as) => as.map((a) => a.href));
@@ -268,7 +293,7 @@ await ctx.close();
   await page.goto(URL_BASE);
   const ocultos = await page.$$eval('.revela', (els) => els.filter((e) => getComputedStyle(e).opacity === '0').length);
   prueba(ocultos === 0, `sin JS: ${ocultos} bloques invisibles`);
-  prueba((await page.$$('article.tarjeta')).length === PRODUCTOS.length, 'sin JS: faltan tarjetas');
+  prueba((await page.$$('[data-producto][data-nombre]')).length === PRODUCTOS.length, 'sin JS: faltan productos');
   prueba(!(await page.isVisible('#carga')), 'sin JS: se ve la pantalla de carga');
   await ctx.close();
 }

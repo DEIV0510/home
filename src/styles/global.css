@@ -348,6 +348,24 @@ html.mostrar-todo .revela {
     box-shadow 0.5s var(--ease);
 }
 
+/* ── Estados del catálogo que pone app.ts (Coleccion.astro) ─────────────── */
+/* Carrusel donde todo cabe (pocos modelos o un filtro): ni barra ni flechas. */
+.riel-caja.sin-desborde .riel__pie {
+  visibility: hidden;
+  height: 0;
+  margin-top: 0;
+}
+/* Carta en celular: 6 a la vista; el resto al pedirlo o con un filtro/búsqueda activa. */
+@media (max-width: 767.98px) {
+  .carta:not(.is-abierta):not(.is-filtrada) .carta__lista > li:nth-child(n + 7) {
+    display: none;
+  }
+  .carta.is-abierta .carta__mas,
+  .carta.is-filtrada .carta__mas {
+    display: none;
+  }
+}
+
 /* ── Movimiento reducido ────────────────────────────────────────────────── */
 /* Sin desplazamientos ni parallax; los fundidos se acortan. La pantalla de carga sigue
    (pedida por el cliente), pero sin movimiento: ver Carga.astro. */

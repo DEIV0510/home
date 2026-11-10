@@ -21,8 +21,9 @@ Todas las fotos son originales del cliente. No se usan imágenes generadas, de s
 Las fotos no se recortan, retocan ni cambian de color: solo se reducen y se convierten de formato.
 La tarjeta encuadra la foto con CSS; el visor (al tocarla) la muestra completa.
 
-Un producto sin foto muestra una placa con su nombre y «Pide fotos por WhatsApp». Al llegar la foto,
-basta con agregarla: la placa desaparece sola.
+Los productos sin foto van en la **carta de precios** de su colección (nombre ····· precio, con
+«Quiero este» y un botón para pedir fotos por WhatsApp). Al llegar la foto, basta con agregarla: el
+producto pasa solo de la carta al carrusel de fotos.
 
 ## Origen
 

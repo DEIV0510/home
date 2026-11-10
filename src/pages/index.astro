@@ -29,10 +29,9 @@ const lista = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
   name: 'Catálogo HOME PREMIUM',
-  itemListElement: [...PRODUCTOS, { ...COLCHON, medidas: undefined }].map((p, i) => {
+  itemListElement: [...PRODUCTOS, COLCHON].map((p, i) => {
     const foto = portadaDe(p.id);
     const imagen = foto ? abs(src(foto.webp, 960)) : undefined;
-    const precios = 'medidas' in p && p.medidas ? p.medidas.map((m) => m.precio) : [p.precio];
     return {
       '@type': 'ListItem',
       position: i + 1,
@@ -42,10 +41,7 @@ const lista = {
         brand: { '@type': 'Brand', name: 'HOME PREMIUM' },
         ...(imagen ? { image: imagen } : {}),
         ...(abs(`/#p-${p.id}`) ? { url: abs(`/#p-${p.id}`) } : {}),
-        offers:
-          precios.length > 1
-            ? { '@type': 'AggregateOffer', priceCurrency: 'COP', lowPrice: Math.min(...precios), highPrice: Math.max(...precios), offerCount: precios.length }
-            : { '@type': 'Offer', priceCurrency: 'COP', price: precios[0] },
+        offers: { '@type': 'Offer', priceCurrency: 'COP', price: p.precio },
       },
     };
   }),

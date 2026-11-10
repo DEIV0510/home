@@ -8,6 +8,3 @@ export const normalizar = (texto: string) =>
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .trim();
-
-/** «Sala Charleston» → «Charleston» (para la placa de los productos sin foto). */
-export const nombreCorto = (nombre: string) => nombre.replace(/^(Sala|Sofá cama)\s+/i, '');

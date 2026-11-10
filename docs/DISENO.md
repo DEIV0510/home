@@ -25,7 +25,10 @@ WhatsApp.
   visita de la sesión; con movimiento reducido aparece y desaparece sin animación.
 - Portada: titular que sube línea por línea, foto que se descubre como un telón, marco dorado y
   segunda foto con parallax a distinta velocidad (CSS `scroll-timeline`, sin librerías).
-- Catálogo: aparición escalonada por columna, zoom sutil de la foto y relleno del botón al pasar el
+- Catálogo corto a propósito: cada colección es un **carrusel** con los modelos que tienen foto
+  (deslizable, barra de avance dorada y flechas) y una **carta de precios** con los demás (en
+  celular, 6 a la vista y «Ver los N modelos»). Tarjetas sin caja: la foto manda.
+- Catálogo: zoom sutil de la foto y relleno dorado del botón al pasar el
   cursor; los filtros reacomodan las tarjetas con View Transitions.
 - Solo se animan `transform` y `opacity`. Con `prefers-reduced-motion` no hay parallax ni
   desplazamientos.
@@ -34,5 +37,5 @@ WhatsApp.
 
 - «Quiero este» en cada producto, directo a WhatsApp con el mensaje del brief.
 - «Consultar», el botón flotante y la cabecera dejan elegir línea (1 o 2).
-- Productos sin foto: la placa pide las fotos por WhatsApp.
+- Productos sin foto: en la carta, la fila entera es «Quiero este» y la cámara pide las fotos.
 - Colchón: tarjeta especial con garantía, envío gratis y selector ortopédico/semiortopédico.

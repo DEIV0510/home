@@ -12,21 +12,14 @@
 export type CategoriaId = 'salas' | 'sofas-cama' | 'colchones' | 'comedores' | 'tocadores';
 export type Etiqueta = 'en-l' | 'compacta';
 
-/** Precio por ancho (en cm). Opcional: la tarjeta muestra «Desde» y un selector de medida. */
-export interface Medida {
-  cm: number;
-  precio: number;
-}
-
 export interface Producto {
   id: string;
   nombre: string;
   categoria: CategoriaId;
   /** Artículo para el mensaje de WhatsApp: «la Sala…», «el Sofá cama…». */
   articulo: 'la' | 'el';
-  /** Precio en pesos colombianos. Con `medidas`, es el menor (se muestra «desde»). */
+  /** Precio en pesos colombianos. */
   precio: number;
-  medidas?: Medida[];
   etiquetas?: Etiqueta[];
   /** De dónde salió el dato: el brief escrito o el catálogo en PowerPoint (diapositiva). */
   origen: string;

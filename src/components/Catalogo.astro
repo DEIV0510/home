@@ -1,23 +1,24 @@
 ---
 // Catálogo completo. Los filtros, el buscador y el orden los maneja app.ts sobre el HTML ya
 // armado (sin JS se ve todo y todos los botones funcionan).
-// Orden por defecto («Destacados»): primero los productos con foto, cada grupo por precio.
-import Tarjeta from './Tarjeta.astro';
+// Cada colección: carrusel con los que tienen foto + carta de precios con los demás
+// (Coleccion.astro). Orden por defecto: menor precio.
+import Coleccion from './Coleccion.astro';
 import Colchon from './Colchon.astro';
 import Icono from './Icono.astro';
 import { PRODUCTOS, CATEGORIAS, type CategoriaId, type Producto } from '../data/catalogo';
-import { fotosDe } from '../lib/fotos';
+import { precio } from '../lib/formato';
 import { LINEA_PRINCIPAL } from '../lib/empresa';
 import { wa, MENSAJES } from '../lib/mensajes';
 
-const tieneFoto = (p: Producto) => fotosDe(p.id).length > 0;
-const destacados = (lista: Producto[]) =>
+const porPrecio = (lista: Producto[]) =>
   lista
     .map((p, i) => ({ p, i }))
-    .sort((a, b) => Number(tieneFoto(b.p)) - Number(tieneFoto(a.p)) || a.p.precio - b.p.precio || a.i - b.i)
+    .sort((a, b) => a.p.precio - b.p.precio || a.i - b.i)
     .map(({ p }) => p);
-const de = (id: CategoriaId) => destacados(PRODUCTOS.filter((p) => p.categoria === id));
+const de = (id: CategoriaId) => porPrecio(PRODUCTOS.filter((p) => p.categoria === id));
 const nombreCat = (id: CategoriaId) => CATEGORIAS.find((c) => c.id === id)!.nombre;
+const resumen = (lista: Producto[]) => `${modelos(lista.length)} · desde ${precio(Math.min(...lista.map((p) => p.precio)))}`;
 
 const salas = de('salas');
 const total = PRODUCTOS.length + 1; // + el colchón
@@ -54,7 +55,6 @@ let orden = 0;
         <label class="ordenar">
           <span class="sr">Ordenar</span>
           <select data-ordenar>
-            <option value="destacados">Destacados</option>
             <option value="precio-asc">Menor precio</option>
             <option value="precio-desc">Mayor precio</option>
           </select>
@@ -86,6 +86,8 @@ let orden = 0;
       {
         GRUPOS.map((g) => {
           const lista = g.id === 'colchones' ? [] : de(g.id);
+          const inicio = orden;
+          orden += lista.length;
           return (
             <section id={g.id} class="grupo" data-grupo={g.id} aria-labelledby={`grupo-${g.id}`}>
               <div class="grupo__cab">
@@ -93,19 +95,11 @@ let orden = 0;
                   {nombreCat(g.id)}
                 </h3>
                 <span class="grupo__n cifra" data-grupo-n>
-                  {g.id === 'colchones' ? '1.40 × 1.90 m' : modelos(lista.length)}
+                  {g.id === 'colchones' ? '1.40 × 1.90 m' : resumen(lista)}
                 </span>
               </div>
               {g.nota && <p class="grupo__nota">{g.nota}</p>}
-              {g.id === 'colchones' ? (
-                <Colchon />
-              ) : (
-                <div class="rejilla" data-rejilla>
-                  {lista.map((p) => (
-                    <Tarjeta p={p} orden={orden++} />
-                  ))}
-                </div>
-              )}
+              {g.id === 'colchones' ? <Colchon /> : <Coleccion lista={lista} nombre={nombreCat(g.id)} inicio={inicio} />}
             </section>
           );
         })
@@ -120,17 +114,15 @@ let orden = 0;
             OTROS.map((id) => {
               const lista = de(id);
               const mensaje = MENSAJES[id as 'comedores' | 'tocadores'];
+              const inicio = orden;
+              orden += lista.length || 1;
               return lista.length ? (
                 <div id={id} class="otros__grupo" data-grupo={id}>
                   <h4 class="titular otro__nombre">{nombreCat(id)}</h4>
-                  <div class="rejilla" data-rejilla>
-                    {lista.map((p) => (
-                      <Tarjeta p={p} orden={orden++} />
-                    ))}
-                  </div>
+                  <Coleccion lista={lista} nombre={nombreCat(id)} inicio={inicio} />
                 </div>
               ) : (
-                <article id={id} class="otro revela" data-producto data-id={id} data-cat={id} data-buscar={`${id} ${id.slice(0, -2)}`} data-precio="0" data-orden={orden++}>
+                <article id={id} class="otro revela" data-producto data-id={id} data-cat={id} data-buscar={`${id} ${id.slice(0, -2)}`} data-precio="0" data-orden={inicio}>
                   <h4 class="titular otro__nombre">{nombreCat(id)}</h4>
                   <p class="otro__texto">Pregunta por los modelos y precios disponibles.</p>
                   <a class="btn btn--tinta" href={wa(LINEA_PRINCIPAL.internacional, mensaje)} target="_blank" rel="noopener" data-lineas data-mensaje={mensaje}>
@@ -343,72 +335,28 @@ let orden = 0;
   }
   .grupo__cab {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
-    padding-bottom: 14px;
-    margin-bottom: 18px;
-    border-bottom: 1px solid var(--linea);
+    gap: 4px 18px;
+    margin-bottom: clamp(20px, 3vw, 32px);
   }
   .grupo__titulo {
-    font-size: clamp(1.875rem, 5vw, 3rem);
+    font-size: clamp(2.25rem, 6vw, 3.75rem);
   }
   .grupo__n {
     color: var(--gris-tinta);
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     white-space: nowrap;
   }
   .grupo__nota {
-    margin: -6px 0 18px;
+    margin: -10px 0 20px;
     font-size: 0.9375rem;
     color: var(--gris-tinta);
-  }
-  .rejilla {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-  /* Aparición escalonada por columna (sin medir nada con JS). */
-  .rejilla > :global(:nth-child(2n)) {
-    --retraso: 80ms;
-  }
-  @media (min-width: 640px) {
-    .rejilla {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-    .rejilla > :global(:nth-child(n)) {
-      --retraso: 0ms;
-    }
-    .rejilla > :global(:nth-child(3n + 2)) {
-      --retraso: 80ms;
-    }
-    .rejilla > :global(:nth-child(3n)) {
-      --retraso: 160ms;
-    }
-  }
-  @media (min-width: 1024px) {
-    .rejilla > :global(:nth-child(n)) {
-      --retraso: 0ms;
-    }
-    .rejilla > :global(:nth-child(4n + 2)) {
-      --retraso: 70ms;
-    }
-    .rejilla > :global(:nth-child(4n + 3)) {
-      --retraso: 140ms;
-    }
-    .rejilla > :global(:nth-child(4n)) {
-      --retraso: 210ms;
-    }
   }
   @media (min-width: 1024px) {
     .catalogo__cab-fila {
       grid-template-columns: 1fr minmax(380px, 460px);
       align-items: end;
-    }
-    .rejilla {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 20px;
     }
   }
 

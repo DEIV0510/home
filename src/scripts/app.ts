@@ -1,8 +1,8 @@
 // HOME PREMIUM — interacción del sitio. Un solo módulo diferido, sin librerías.
 // Todo el HTML ya viene armado: este archivo solo mejora (sin JS, todo se ve y los enlaces
 // de WhatsApp funcionan). La CSP prohíbe innerHTML/eval: solo API del DOM.
-import { wa, mensajeQuiero, mensajeConsulta, mensajeColchon, MENSAJES, type DatosMensaje } from '../lib/mensajes';
-import { precio as formatoPrecio, normalizar } from '../lib/formato';
+import { wa, mensajeColchon, MENSAJES } from '../lib/mensajes';
+import { normalizar } from '../lib/formato';
 import { LINEA_PRINCIPAL } from '../lib/empresa';
 
 declare global {
@@ -213,8 +213,7 @@ if (visor) {
       }),
     );
     $('[data-visor-nombre]', visor)!.textContent = nombre;
-    const desde = $('[data-desde]', tarjeta);
-    $('[data-visor-precio]', visor)!.textContent = `${desde && !desde.hidden ? 'Desde ' : ''}${$('[data-precio-texto]', tarjeta)?.textContent ?? ''}`;
+    $('[data-visor-precio]', visor)!.textContent = $('[data-precio-texto]', tarjeta)?.textContent ?? '';
     const quiero = $<HTMLAnchorElement>('[data-quiero]', tarjeta);
     $<HTMLAnchorElement>('[data-visor-cta]', visor)!.href = quiero?.href ?? wa(PRINCIPAL, MENSAJES.general);
     abrirCapa(visor);
@@ -222,6 +221,64 @@ if (visor) {
     marcar();
   });
 }
+
+/* ── Carruseles del catálogo ─────────────────────────────────────────────────────────────── */
+const rieles = $$('[data-riel]');
+/** Barra de avance, flechas y «sin desborde» (si todo cabe, no hay barra ni flechas). */
+function refrescarRiel(r: HTMLElement) {
+  const caja = r.closest('.riel-caja');
+  const pie = caja?.querySelector<HTMLElement>('[data-riel-pie]');
+  if (!caja || !pie) return;
+  const max = r.scrollWidth - r.clientWidth;
+  caja.classList.toggle('sin-desborde', max <= 2);
+  if (max <= 2) return;
+  const barra = pie.querySelector<HTMLElement>('[data-riel-barra]')!;
+  const ancho = Math.max(0.12, r.clientWidth / r.scrollWidth);
+  const recorrido = barra.parentElement!.clientWidth * (1 - ancho);
+  barra.style.setProperty('--ancho', `${(ancho * 100).toFixed(2)}%`);
+  barra.style.setProperty('--x', `${((Math.min(r.scrollLeft, max) / max) * recorrido).toFixed(1)}px`);
+  pie.querySelector<HTMLButtonElement>('[data-riel-ant]')!.disabled = r.scrollLeft <= 2;
+  pie.querySelector<HTMLButtonElement>('[data-riel-sig]')!.disabled = r.scrollLeft >= max - 2;
+}
+for (const r of rieles) {
+  const caja = r.closest('.riel-caja')!;
+  let pendienteRiel = false;
+  r.addEventListener(
+    'scroll',
+    () => {
+      if (pendienteRiel) return;
+      pendienteRiel = true;
+      requestAnimationFrame(() => {
+        pendienteRiel = false;
+        refrescarRiel(r);
+      });
+    },
+    { passive: true },
+  );
+  // Las flechas avanzan de a «pantalla» de tarjetas completas.
+  const paso = (dir: number) => {
+    const tarjeta = r.querySelector<HTMLElement>('[data-producto]:not([hidden])');
+    const ancho = tarjeta ? tarjeta.offsetWidth + (parseFloat(getComputedStyle(r).columnGap) || 0) : r.clientWidth * 0.8;
+    const cuantas = Math.max(1, Math.floor((r.clientWidth + 1) / ancho));
+    r.scrollBy({ left: dir * ancho * cuantas, behavior: reducido.matches ? 'auto' : 'smooth' });
+  };
+  caja.querySelector('[data-riel-ant]')?.addEventListener('click', () => paso(-1));
+  caja.querySelector('[data-riel-sig]')?.addEventListener('click', () => paso(1));
+  new ResizeObserver(() => refrescarRiel(r)).observe(r);
+}
+// La carga diferida no trae las fotos que quedan fuera hacia los lados del carrusel: cuando el
+// carrusel se acerca a la pantalla, se piden todas.
+const precargar = new IntersectionObserver(
+  (entradas) => {
+    for (const e of entradas) {
+      if (!e.isIntersecting) continue;
+      e.target.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((i) => (i.loading = 'eager'));
+      precargar.unobserve(e.target);
+    }
+  },
+  { rootMargin: '600px 0px' },
+);
+rieles.forEach((r) => precargar.observe(r));
 
 /* ── Catálogo: filtros, buscador y orden ─────────────────────────────────────────────────── */
 const catalogo = $('[data-catalogo]');
@@ -239,9 +296,12 @@ if (catalogo) {
   const barra = $('[data-barra]', catalogo)!;
   const filaChips = $('[data-chips]', catalogo)!;
   const FILTROS = new Set(chips.map((c) => c.dataset.filtro!));
-  const ORDENES = new Set(['destacados', 'precio-asc', 'precio-desc']);
+  const ORDENES = new Set(['precio-asc', 'precio-desc']);
+  const subs = $$('[data-sub]', catalogo);
+  const cartas = $$('[data-carta]', catalogo);
+  const resumenes = new Map($$('[data-grupo-n]', catalogo).map((el) => [el, el.textContent ?? '']));
 
-  const estado = { filtro: 'todo', q: '', orden: 'destacados' };
+  const estado = { filtro: 'todo', q: '', orden: 'precio-asc' };
 
   // Alto de la barra fija: los grupos se detienen debajo al llegar por un ancla.
   new ResizeObserver(() => d.style.setProperty('--barra-h', `${barra.offsetHeight}px`)).observe(barra);
@@ -271,11 +331,9 @@ if (catalogo) {
     for (const r of rejillas) {
       const hijos = [...r.children] as HTMLElement[];
       const clave = (el: HTMLElement) => Number(el.dataset.precio);
-      hijos.sort((a, b) => {
-        if (estado.orden === 'precio-asc') return clave(a) - clave(b) || Number(a.dataset.orden) - Number(b.dataset.orden);
-        if (estado.orden === 'precio-desc') return clave(b) - clave(a) || Number(a.dataset.orden) - Number(b.dataset.orden);
-        return Number(a.dataset.orden) - Number(b.dataset.orden);
-      });
+      hijos.sort((a, b) =>
+        estado.orden === 'precio-desc' ? clave(b) - clave(a) || Number(a.dataset.orden) - Number(b.dataset.orden) : Number(a.dataset.orden) - Number(b.dataset.orden),
+      );
       r.append(...hijos);
     }
   };
@@ -290,12 +348,21 @@ if (catalogo) {
       if (ok) visibles++;
       if (ok && Number(el.dataset.precio) > 0) n++;
     }
+    const filtrado = estado.filtro !== 'todo' || Boolean(estado.q);
     for (const g of grupos) {
       const suyos = $$('[data-producto]', g);
       const cuantos = suyos.filter((el) => !el.hidden).length;
       g.hidden = cuantos === 0;
       const etiqueta = $('[data-grupo-n]', g);
-      if (etiqueta && g.dataset.grupo !== 'colchones') etiqueta.textContent = `${cuantos} ${cuantos === 1 ? 'modelo' : 'modelos'}`;
+      if (etiqueta && g.dataset.grupo !== 'colchones')
+        etiqueta.textContent = filtrado ? `${cuantos} ${cuantos === 1 ? 'modelo' : 'modelos'}` : (resumenes.get(etiqueta) ?? '');
+    }
+    // Carrusel o carta sin nada que mostrar: fuera. La carta se despliega entera al filtrar.
+    for (const s of subs) s.hidden = !$$('[data-producto]', s).some((el) => !el.hidden);
+    for (const c of cartas) c.classList.toggle('is-filtrada', filtrado);
+    for (const r of rieles) {
+      r.scrollLeft = 0;
+      refrescarRiel(r);
     }
     for (const c of chips) c.setAttribute('aria-pressed', String(c.dataset.filtro === estado.filtro));
     limpiar.hidden = !estado.q;
@@ -313,7 +380,7 @@ if (catalogo) {
     const url = new URL(location.href);
     estado.filtro === 'todo' ? url.searchParams.delete('filtro') : url.searchParams.set('filtro', estado.filtro);
     estado.q ? url.searchParams.set('q', estado.q) : url.searchParams.delete('q');
-    estado.orden === 'destacados' ? url.searchParams.delete('orden') : url.searchParams.set('orden', estado.orden);
+    estado.orden === 'precio-asc' ? url.searchParams.delete('orden') : url.searchParams.set('orden', estado.orden);
     if (url.href !== location.href) history.replaceState(history.state, '', url);
   };
 
@@ -379,7 +446,7 @@ if (catalogo) {
   });
   selectOrden.addEventListener('change', () => {
     conTransicion(() => {
-      estado.orden = ORDENES.has(selectOrden.value) ? selectOrden.value : 'destacados';
+      estado.orden = ORDENES.has(selectOrden.value) ? selectOrden.value : 'precio-asc';
       ordenar();
       aplicar();
     });
@@ -418,32 +485,29 @@ if (catalogo) {
   }
   if (f || q || o) aplicar();
 
-  // Medida elegida (productos con `medidas`) y tipo de colchón: cambian precio y mensajes.
+  // Tipo de colchón (ortopédico / semiortopédico): cambia los mensajes.
   catalogo.addEventListener('change', (e) => {
     const input = e.target as HTMLInputElement;
     const tarjeta = input.closest<HTMLElement>('[data-producto]');
-    if (!tarjeta) return;
-    let quiero = '';
-    let consulta = '';
-    if (input.dataset.tipoColchon !== undefined) {
-      quiero = consulta = mensajeColchon(input.value, tarjeta.dataset.medida ?? '', tarjeta.dataset.precioFmt ?? '');
-    } else if (input.dataset.precio) {
-      const valor = formatoPrecio(Number(input.dataset.precio));
-      const texto = $('[data-precio-texto]', tarjeta)!;
-      texto.textContent = valor;
-      texto.animate?.([{ opacity: 0.2, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: reducido.matches ? 1 : 320, easing: 'ease-out' });
-      const desde = $('[data-desde]', tarjeta);
-      if (desde) desde.hidden = true;
-      const datos: DatosMensaje = { articulo: tarjeta.dataset.articulo as 'la' | 'el', nombre: tarjeta.dataset.nombre ?? '', precio: valor, medida: Number(input.value) };
-      quiero = mensajeQuiero(datos);
-      consulta = mensajeConsulta(datos, tarjeta.dataset.foto === '1');
-    } else return;
-    for (const a of $$<HTMLAnchorElement>('[data-quiero]', tarjeta)) a.href = wa(PRINCIPAL, quiero);
+    if (!tarjeta || input.dataset.tipoColchon === undefined) return;
+    const mensaje = mensajeColchon(input.value, tarjeta.dataset.medida ?? '', tarjeta.dataset.precioFmt ?? '');
+    for (const a of $$<HTMLAnchorElement>('[data-quiero]', tarjeta)) a.href = wa(PRINCIPAL, mensaje);
     for (const a of $$<HTMLAnchorElement>('[data-consulta]', tarjeta)) {
-      a.href = wa(PRINCIPAL, consulta);
-      a.dataset.mensaje = consulta;
+      a.href = wa(PRINCIPAL, mensaje);
+      a.dataset.mensaje = mensaje;
     }
   });
+
+  // Carta en celular: «Ver los N modelos».
+  for (const c of cartas) {
+    const boton = $<HTMLButtonElement>('[data-carta-mas]', c);
+    boton?.addEventListener('click', () => {
+      c.classList.add('is-abierta');
+      boton.setAttribute('aria-expanded', 'true');
+      // El foco pasa a la primera fila que estaba plegada.
+      setTimeout(() => $<HTMLAnchorElement>('li:nth-child(7) a', c)?.focus({ preventScroll: true }), 60);
+    });
+  }
 }
 
 /* ── Anclas internas ─────────────────────────────────────────────────────────────────────── */
@@ -473,7 +537,6 @@ if (location.hash) {
 }
 
 /* ── Aparición al hacer scroll ───────────────────────────────────────────────────────────── */
-// (El escalonado por columna de las rejillas va en CSS: Catalogo.astro.)
 const revelar = new IntersectionObserver(
   (entradas) => {
     for (const e of entradas) {

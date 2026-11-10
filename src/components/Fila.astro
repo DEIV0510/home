@@ -1,0 +1,162 @@
+---
+// Fila de la carta de precios: productos que aún no tienen foto. Nombre, línea de puntos y
+// precio, como una carta. Toda la fila es «Quiero este» (WhatsApp con el mensaje del brief);
+// el botón de cámara pide las fotos eligiendo línea. Cuando llegue la foto del producto, pasa
+// solo a ser tarjeta (Catalogo.astro decide según src/data/fotos.json).
+import Icono from './Icono.astro';
+import type { Producto } from '../data/catalogo';
+import { precio, normalizar } from '../lib/formato';
+import { LINEA_PRINCIPAL } from '../lib/empresa';
+import { wa, mensajeQuiero, mensajeConsulta } from '../lib/mensajes';
+
+interface Props {
+  p: Producto;
+  orden: number;
+}
+const { p, orden } = Astro.props;
+const datos = { articulo: p.articulo, nombre: p.nombre, precio: precio(p.precio) };
+const quiero = mensajeQuiero(datos);
+const fotos = mensajeConsulta(datos, false);
+const ETIQUETAS = { compacta: 'Compacta', 'en-l': 'En L' } as const;
+const etiqueta = (p.etiquetas ?? []).map((e) => ETIQUETAS[e]).join(' · ');
+---
+
+<li
+  id={`p-${p.id}`}
+  class="fila"
+  data-producto
+  data-id={p.id}
+  data-cat={p.categoria}
+  data-etiquetas={(p.etiquetas ?? []).join(' ')}
+  data-buscar={normalizar(`${p.nombre} ${etiqueta}`)}
+  data-precio={p.precio}
+  data-orden={orden}
+  data-foto="0"
+  data-nombre={p.nombre}
+  data-articulo={p.articulo}
+>
+  <a class="fila__quiero" href={wa(LINEA_PRINCIPAL.internacional, quiero)} target="_blank" rel="noopener" data-quiero aria-label={`Quiero ${p.articulo} ${p.nombre}, ${precio(p.precio)}: escribir por WhatsApp`}>
+    <span class="fila__nombre">{p.nombre}</span>
+    <span class="fila__puntos" aria-hidden="true"></span>
+    <span class="fila__precio cifra" data-precio-texto>{precio(p.precio)}</span>
+    <span class="fila__accion" aria-hidden="true">
+      <span class="fila__accion-texto">Quiero este</span>
+      <Icono nombre="flecha" />
+    </span>
+  </a>
+  <a
+    class="fila__fotos"
+    href={wa(LINEA_PRINCIPAL.internacional, fotos)}
+    target="_blank"
+    rel="noopener"
+    data-lineas
+    data-mensaje={fotos}
+    data-consulta
+    aria-label={`Pedir fotos de ${p.articulo} ${p.nombre} por WhatsApp`}
+    title="Pedir fotos por WhatsApp"
+  >
+    <Icono nombre="camara" />
+  </a>
+</li>
+
+<style>
+  .fila {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-bottom: 1px solid var(--linea);
+  }
+  .fila__quiero {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-height: 58px;
+    padding: 18px 4px 14px 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* El nombre puede encogerse y partir línea: nunca empuja el precio sobre el botón de fotos. */
+  .fila__nombre {
+    flex: 0 1 auto;
+    min-width: 0;
+    font: 600 1.125rem/1.1 var(--font-titular);
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .fila__puntos {
+    flex: 1;
+    min-width: 12px;
+    border-bottom: 1px dotted rgb(21 21 21 / 0.35);
+    transform: translateY(-4px);
+  }
+  .fila__precio {
+    flex: none;
+    font: 600 1.0625rem/1 var(--font-texto);
+    letter-spacing: 0.01em;
+  }
+  /* En celular la fila entera es el botón: sin flecha (no cabe junto al precio y la cámara). */
+  .fila__accion {
+    flex: none;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    align-self: center;
+    color: var(--oro-tinta);
+    font: 600 0.6875rem/1 var(--font-texto);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .fila__accion-texto {
+    display: none;
+  }
+  .fila__accion :global(svg) {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.35s var(--ease);
+  }
+  .fila__fotos {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--gris-tinta);
+    transition:
+      background-color 0.3s,
+      color 0.3s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .fila__fotos :global(svg) {
+    width: 20px;
+    height: 20px;
+  }
+  .fila__quiero:active .fila__nombre {
+    color: var(--oro-tinta);
+  }
+  @media (hover: hover) {
+    .fila__quiero:hover .fila__nombre {
+      color: var(--oro-tinta);
+    }
+    .fila__quiero:hover .fila__accion :global(svg) {
+      transform: translateX(4px);
+    }
+    .fila__fotos:hover {
+      background: var(--carbon);
+      color: var(--oro);
+    }
+  }
+  @media (min-width: 640px) {
+    .fila__nombre {
+      font-size: 1.25rem;
+    }
+    .fila__accion-texto {
+      display: inline;
+    }
+    .fila__accion {
+      display: inline-flex;
+      margin-left: 8px;
+    }
+  }
+</style>
